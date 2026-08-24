@@ -1,0 +1,47 @@
+version: '3.9'
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: smartcity
+    volumes:
+      - mongo-data:/data/db
+
+  ml:
+    build:
+      context: ./ml
+    ports:
+      - '8000:8000'
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./ml:/app
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongo:27017/smartcity
+      - ML_API_URL=http://ml:8000
+    depends_on:
+      - mongo
+      - ml
+
+  client:
+    build:
+      context: ./client
+    ports:
+      - '5173:80'
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:
