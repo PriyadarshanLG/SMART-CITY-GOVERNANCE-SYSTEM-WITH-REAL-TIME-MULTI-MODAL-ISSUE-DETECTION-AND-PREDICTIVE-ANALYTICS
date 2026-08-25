@@ -7,6 +7,10 @@ export interface UserProfile {
   email: string;
   role: 'Citizen' | 'Government Officer' | 'Department Head' | 'Admin' | string;
   phone?: string;
+  stateCode?: string;
+  state?: string;
+  district?: string;
+  city?: string;
   language?: string;
 }
 
@@ -16,7 +20,17 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
-  registerUser: (data: { name: string; email: string; password: string; phone?: string; role?: string }) => Promise<{ success: boolean; message?: string }>;
+  registerUser: (data: {
+    name: string;
+    email: string;
+    password?: string;
+    phone?: string;
+    role?: string;
+    stateCode?: string;
+    state?: string;
+    district?: string;
+    city?: string;
+  }) => Promise<{ success: boolean; message?: string }>;
   quickLoginAsRole: (role: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
 }
@@ -80,7 +94,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const registerUser = async (data: { name: string; email: string; password: string; phone?: string; role?: string }) => {
+  const registerUser = async (data: {
+    name: string;
+    email: string;
+    password?: string;
+    phone?: string;
+    role?: string;
+    stateCode?: string;
+    state?: string;
+    district?: string;
+    city?: string;
+  }) => {
     try {
       const res = await api.post('/auth/register', data);
       if (res.data?.accessToken && res.data?.user) {

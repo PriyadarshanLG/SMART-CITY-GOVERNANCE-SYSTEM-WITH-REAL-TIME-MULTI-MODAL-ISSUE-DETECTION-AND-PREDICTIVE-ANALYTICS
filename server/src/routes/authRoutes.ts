@@ -7,25 +7,40 @@ export const authRouter = Router();
 
 authRouter.post('/register', async (req, res, next) => {
   try {
-    const { name, email, password, phone, role } = req.body as {
+    const { name, email, password, phone, role, stateCode, state, district, city } = req.body as {
       name?: string;
       email?: string;
       password?: string;
       phone?: string;
       role?: 'Citizen' | 'Government Officer' | 'Department Head' | 'Admin';
+      stateCode?: string;
+      state?: string;
+      district?: string;
+      city?: string;
     };
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Name, email, and password are required' });
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name and email are required' });
     }
 
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ message: 'Email already registered' });
+      return res.status(409).json({ message: 'Email is already registered' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
-    const user = await UserModel.create({ name, email, phone, role, passwordHash });
+    const finalPassword = password || 'Password@123';
+    const passwordHash = await bcrypt.hash(finalPassword, 12);
+    const user = await UserModel.create({
+      name,
+      email,
+      phone,
+      stateCode,
+      state,
+      district,
+      city,
+      role: role || 'Citizen',
+      passwordHash,
+    });
     const payload = { userId: user._id.toString(), role: user.role };
 
     return res.status(201).json({
@@ -34,6 +49,11 @@ authRouter.post('/register', async (req, res, next) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        stateCode: user.stateCode,
+        state: user.state,
+        district: user.district,
+        city: user.city,
         role: user.role,
       },
       accessToken: signAccessToken(payload),

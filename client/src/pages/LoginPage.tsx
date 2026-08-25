@@ -1,9 +1,7 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -14,32 +12,41 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-interface LoginValues {
-  email: string;
-  password: string;
-}
+import { GovernmentEmblem } from '../components/layout/GovernmentEmblem';
+import { SwachhBharatLogo } from '../components/layout/SwachhBharatLogo';
+import { CaptchaBox } from '../components/common/CaptchaBox';
 
 export function LoginPage() {
-  const { register, handleSubmit } = useForm<LoginValues>({
-    defaultValues: {
-      email: 'citizen@smartcity.gov.in',
-      password: 'Password@123',
-    },
-  });
+  const [email, setEmail] = useState('citizen@smartcity.gov.in');
+  const [password, setPassword] = useState('Password@123');
   const [showPassword, setShowPassword] = useState(false);
+  const [currentCaptcha, setCurrentCaptcha] = useState('');
+  const [enteredCaptcha, setEnteredCaptcha] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
   const navigate = useNavigate();
   const { login, quickLoginAsRole } = useAuth();
 
-  const onSubmit = handleSubmit(async (values) => {
-    setIsLoading(true);
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
-    const res = await login(values.email, values.password);
+    if (!email.trim() || !password.trim()) {
+      setErrorMsg('Please enter both Email and Password.');
+      return;
+    }
+
+    if (enteredCaptcha.trim().toUpperCase() !== currentCaptcha.toUpperCase()) {
+      setErrorMsg('Invalid Captcha code. Please enter the characters shown in the box.');
+      return;
+    }
+
+    setIsLoading(true);
+    const res = await login(email.trim(), password);
     setIsLoading(false);
 
     if (res.success) {
@@ -50,7 +57,7 @@ export function LoginPage() {
     } else {
       setErrorMsg(res.message || 'Login failed. Please check credentials.');
     }
-  });
+  };
 
   const demoLogin = async (role: string) => {
     setIsLoading(true);
@@ -66,7 +73,6 @@ export function LoginPage() {
         navigate(`/dashboard/${role}`);
       }, 400);
     } else {
-      // Fallback navigation if server offline
       navigate(`/dashboard/${role}`);
     }
   };
@@ -74,164 +80,191 @@ export function LoginPage() {
   return (
     <div className="page-shell flex min-h-[calc(100vh-8rem)] items-center justify-center py-12">
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        {/* Left Side: GovTech Trust & Features */}
-        <div className="glass-card p-8 md:p-10 flex flex-col justify-between">
+        
+        {/* Left Side: National SSO & Trust Info */}
+        <div className="gov-panel p-8 border-2 border-[#0A2540] flex flex-col justify-between dark:border-slate-800 bg-white dark:bg-slate-900">
           <div>
-            <span className="gov-badge">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Secure Civic Authentication
-            </span>
-            <h1 className="mt-5 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
-              Sign In to Your Civic Workspace
-            </h1>
-            <p className="mt-3 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              Access your personalized citizen grievance dashboard, ward officer work queues, and municipal telemetry connected directly to MongoDB.
+            <div className="flex items-center gap-3 mb-4">
+              <GovernmentEmblem className="h-12 w-12" />
+              <div>
+                <span className="text-[10px] font-bold text-amber-800 uppercase tracking-widest block font-hindi">
+                  भारत सरकार · Govt. of India
+                </span>
+                <h2 className="text-base font-black uppercase text-[#0A2540] dark:text-white">
+                  Jan Parichay SSO Gateway
+                </h2>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 mb-4">
+              <span className="gov-badge font-mono text-[9px]">GIGW 3.0 SSO</span>
+              <span className="gov-badge-green font-mono text-[9px]">STQC Certified</span>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Unified authentication gateway for citizens, ward officers, and municipal administrators. Access your active grievances, field work orders, and department analytics with single sign-on security.
             </p>
 
-            <div className="mt-8 space-y-3">
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-                <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
-                <span>JWT-Authenticated 256-bit encrypted session</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-                <Lock className="h-5 w-5 text-blue-600 shrink-0" />
-                <span>MongoDB persistent profiles with granular audit trails</span>
-              </div>
+            {/* Statutory Cyber Notice */}
+            <div className="mt-6 rounded-lg bg-amber-50 p-3.5 border border-amber-300 text-xs text-amber-950 dark:bg-amber-950/30 dark:border-amber-900 dark:text-amber-300">
+              <p className="font-bold flex items-center gap-1.5 mb-1">
+                <ShieldCheck className="h-4 w-4 text-amber-700" />
+                Statutory Security Advisory:
+              </p>
+              <p className="text-[11px] leading-relaxed">
+                Unauthorized access to this government portal is strictly prohibited and punishable under Section 43 & Section 66 of the Information Technology Act 2000.
+              </p>
             </div>
           </div>
 
-          {/* Quick 1-Click Demo Evaluation Profiles */}
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-              ⚡ 1-Click Instant Demo Login:
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => demoLogin('citizen')}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left font-bold text-slate-700 hover:bg-blue-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 transition disabled:opacity-50"
-              >
-                👤 Citizen View
-              </button>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => demoLogin('officer')}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left font-bold text-slate-700 hover:bg-blue-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 transition disabled:opacity-50"
-              >
-                👷 Ward Officer
-              </button>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => demoLogin('dept-head')}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left font-bold text-slate-700 hover:bg-blue-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 transition disabled:opacity-50"
-              >
-                📊 Dept Head
-              </button>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => demoLogin('admin')}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left font-bold text-slate-700 hover:bg-blue-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 transition disabled:opacity-50"
-              >
-                ⚙️ System Admin
-              </button>
-            </div>
+          <div className="mt-8 pt-4 border-t border-slate-200 text-[10px] text-slate-500 dark:border-slate-800">
+            <p>Protected by 256-bit TLS Encryption & National Cyber Security Guidelines.</p>
           </div>
         </div>
 
-        {/* Right Side: Login Form */}
-        <div className="surface-card p-8 md:p-10 flex flex-col justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-950 dark:text-white">Sign In</h2>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Enter your credentials to manage grievances and monitor updates.
+        {/* Right Side: Login Form Card styled after Reference Image 3 */}
+        <div className="rounded-2xl border-2 border-[#1f7a7a]/40 bg-[#d8eabf] p-8 shadow-2xl text-slate-900">
+          <div className="flex flex-col items-center text-center mb-6">
+            <GovernmentEmblem className="h-12 w-12 mb-2" />
+            <h1 className="text-xl font-black text-[#1a5b5b] tracking-tight">
+              Smart City Citizen & Official Login
+            </h1>
+            <p className="text-xs font-bold text-slate-600 font-hindi mt-0.5">
+              स्मार्ट सिटी नागरिक एवं आधिकारिक पोर्टल लॉगिन
             </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+            <div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                className="w-full rounded-lg border border-slate-400/80 bg-white/95 px-3.5 py-2.5 text-xs font-semibold text-slate-900 placeholder:text-slate-500 outline-none focus:border-[#1f7a7a] focus:ring-1 focus:ring-[#1f7a7a] shadow-sm"
+              />
+            </div>
+
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="w-full rounded-lg border border-slate-400/80 bg-white/95 px-3.5 py-2.5 pr-10 text-xs font-semibold text-slate-900 placeholder:text-slate-500 outline-none focus:border-[#1f7a7a] focus:ring-1 focus:ring-[#1f7a7a] shadow-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-2.5 text-slate-600 hover:text-slate-900"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+
+            {/* Captcha Box (Reference Image 3) */}
+            <div className="pt-1">
+              <CaptchaBox onCodeChange={setCurrentCaptcha} />
+            </div>
+
+            {/* Enter Captcha */}
+            <div>
+              <input
+                type="text"
+                value={enteredCaptcha}
+                onChange={(e) => setEnteredCaptcha(e.target.value)}
+                placeholder="Enter Captcha"
+                required
+                className="w-full rounded-lg border border-slate-400/80 bg-white/95 px-3.5 py-2.5 text-xs font-bold uppercase text-slate-900 placeholder:text-slate-500 outline-none focus:border-[#1f7a7a] focus:ring-1 focus:ring-[#1f7a7a] shadow-sm tracking-wider"
+              />
+            </div>
 
             {errorMsg && (
-              <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
-                <AlertCircle className="h-4 w-4 shrink-0" />
+              <div className="flex items-center gap-1.5 text-red-700 text-xs font-bold bg-red-100/80 p-2 rounded-lg border border-red-300">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold bg-emerald-100/80 p-2 rounded-lg border border-emerald-300">
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
                 <span>{successMsg}</span>
               </div>
             )}
 
-            <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-              <div>
-                <label className="section-kicker block">Email Address</label>
-                <div className="relative mt-2">
-                  <input
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-10 text-xs sm:text-sm font-semibold text-slate-900 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                    placeholder="citizen@smartcity.gov.in"
-                    type="email"
-                    {...register('email', { required: true })}
-                  />
-                  <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                </div>
-              </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full rounded-lg bg-[#208b8b] hover:bg-[#197575] active:scale-[0.99] py-3 text-xs font-black uppercase tracking-wider text-white shadow-md transition disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                'Login'
+              )}
+            </button>
 
-              <div>
-                <label className="section-kicker block">Password</label>
-                <div className="relative mt-2">
-                  <input
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-10 pr-10 text-xs sm:text-sm font-semibold text-slate-900 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                    placeholder="••••••••"
-                    type={showPassword ? 'text' : 'password'}
-                    {...register('password', { required: true })}
-                  />
-                  <KeyRound className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((p) => !p)}
-                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-white"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-400 font-medium">
-                  <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" defaultChecked />
-                  Remember this device
-                </label>
-                <span className="font-semibold text-blue-600 hover:underline cursor-pointer dark:text-blue-400">
-                  Password: Password@123
-                </span>
-              </div>
-
+            <div className="flex items-center justify-between pt-2 text-xs font-bold">
               <button
-                className="btn-primary w-full gap-2 mt-4 py-3.5"
-                type="submit"
-                disabled={isLoading}
+                type="button"
+                onClick={() => alert('Password reset instructions sent to registered government email/mobile.')}
+                className="text-[#1a6464] hover:underline"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Verifying Credentials...
-                  </>
-                ) : (
-                  <>
-                    Sign In to Portal <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
+                Forgot password?
               </button>
-            </form>
+
+              <Link to="/register" className="text-[#1a6464] hover:underline">
+                Register Here
+              </Link>
+            </div>
+          </form>
+
+          {/* Quick Demo Workspace Jurisdictions */}
+          <div className="mt-6 pt-4 border-t border-[#1f7a7a]/20">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-2.5 text-center">
+              Quick 1-Click Role Workspace (Demo Access)
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <button
+                type="button"
+                onClick={() => demoLogin('citizen')}
+                className="btn-gov-outline py-2 text-left justify-start bg-white"
+              >
+                👤 Citizen View
+              </button>
+              <button
+                type="button"
+                onClick={() => demoLogin('officer')}
+                className="btn-gov-outline py-2 text-left justify-start bg-white"
+              >
+                🛠️ Ward Officer
+              </button>
+              <button
+                type="button"
+                onClick={() => demoLogin('dept-head')}
+                className="btn-gov-outline py-2 text-left justify-start bg-white"
+              >
+                🏢 Dept Head
+              </button>
+              <button
+                type="button"
+                onClick={() => demoLogin('admin')}
+                className="btn-gov-outline py-2 text-left justify-start bg-white"
+              >
+                🏛️ Municipal Admin
+              </button>
+            </div>
           </div>
 
-          <p className="mt-8 text-center text-xs text-slate-600 dark:text-slate-400">
-            Do not have a registered profile yet?{' '}
-            <Link to="/register" className="font-bold text-blue-600 hover:underline dark:text-blue-400">
-              Create an account
-            </Link>
-          </p>
         </div>
+
       </div>
     </div>
   );

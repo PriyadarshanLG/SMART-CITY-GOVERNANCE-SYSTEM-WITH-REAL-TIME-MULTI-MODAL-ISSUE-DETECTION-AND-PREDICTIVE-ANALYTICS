@@ -8,7 +8,15 @@ import {
   Bot,
   Sparkles,
   ArrowRight,
+  ShieldCheck,
+  Building2,
+  FilePlus2,
+  Search,
+  Landmark,
+  PhoneCall,
+  CheckCircle2,
 } from 'lucide-react';
+import { GovernmentEmblem } from './GovernmentEmblem';
 
 interface ChatMessage {
   sender: 'bot' | 'user';
@@ -18,21 +26,23 @@ interface ChatMessage {
 
 const initialBotMessages = {
   en: {
-    text: 'Namaste! I am Sahayak, your Smart City Citizen Assistant. How can I help you today?',
+    text: 'Namaste! I am Sahayak (सहायक), your Official Smart City Virtual Citizen Assistant. How may I assist you with municipal services today?',
     options: [
-      { label: '🚧 Report Pothole / Road damage', action: 'pothole' },
-      { label: '💡 Report Streetlight issue', action: 'streetlight' },
-      { label: '🗑️ Report Garbage / Waste Pile', action: 'garbage' },
-      { label: '🔍 Track Grievance Status', action: 'track' },
+      { label: '📝 File a Grievance (Form SC-2026)', action: 'report' },
+      { label: '🔍 Track Grievance Status (GRN Lookup)', action: 'track' },
+      { label: '📜 View Citizen Charter & SLA Timelines', action: 'charter' },
+      { label: '☎️ Emergency Municipal Helplines', action: 'emergency' },
+      { label: '🏢 Contact Ward Nodal Officer', action: 'officer' },
     ],
   },
   hi: {
-    text: 'नमस्ते! मैं सहायक हूँ, आपका स्मार्ट सिटी नागरिक सहायक। आज मैं आपकी क्या सहायता कर सकता हूँ?',
+    text: 'नमस्ते! मैं सहायक हूँ, आपका आधिकारिक स्मार्ट सिटी नागरिक मार्गदर्शक। आज मैं आपकी क्या सहायता कर सकता हूँ?',
     options: [
-      { label: '🚧 सड़क के गड्ढे की शिकायत', action: 'pothole' },
-      { label: '💡 स्ट्रीट लाइट बंद होना', action: 'streetlight' },
-      { label: '🗑️ कचरे के ढेर की शिकायत', action: 'garbage' },
-      { label: '🔍 शिकायत की स्थिति जांचें', action: 'track' },
+      { label: '📝 नई शिकायत दर्ज करें (प्रपत्र SC-2026)', action: 'report' },
+      { label: '🔍 शिकायत की स्थिति जांचें (GRN)', action: 'track' },
+      { label: '📜 नागरिक अधिकार पत्र और समयसीमा', action: 'charter' },
+      { label: '☎️ आपातकालीन हेल्पलाइन नंबर', action: 'emergency' },
+      { label: '🏢 वार्ड नोडल अधिकारी से संपर्क', action: 'officer' },
     ],
   },
 } as const;
@@ -62,90 +72,118 @@ export function Assistant() {
     setMessages((prev) => [...prev, { sender: 'user', text: label }]);
 
     setTimeout(() => {
-      if (action === 'pothole') {
+      if (action === 'report') {
         setMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
             text: language === 'en'
-              ? 'Understood. I will prepare a Road Damage report. Click below to prefill the grievance form.'
-              : 'समझ गया। मैं सड़क मरम्मत की शिकायत तैयार करूँगा। नीचे क्लिक करके फ़ॉर्म भरें।',
-            options: [{ label: language === 'en' ? '📝 Prefill Road Form' : '📝 फ़ॉर्म भरें', action: 'go_pothole' }],
+              ? 'You can lodge public grievances for road damage, streetlights, drainage, water supply, and waste. Would you like to open the official Form SC-GRV-2026?'
+              : 'आप सड़क, स्ट्रीट लाइट, जल आपूर्ति और कचरे की शिकायत दर्ज कर सकते हैं। क्या आप प्रपत्र SC-GRV-2026 खोलना चाहते हैं?',
+            options: [
+              { label: language === 'en' ? 'Open Grievance Form ➔' : 'शिकायत प्रपत्र खोलें ➔', action: 'go_report' },
+              { label: language === 'en' ? 'Main Menu ↺' : 'मुख्य मेनू ↺', action: 'reset' },
+            ],
           },
         ]);
-      } else if (action === 'streetlight') {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            text: language === 'en'
-              ? 'Understood. I will prepare a Street Light report. Click below to prefill the grievance form.'
-              : 'समझ गया। मैं स्ट्रीट लाइट की शिकायत तैयार करूँगा। नीचे क्लिक करके फ़ॉर्म भरें।',
-            options: [{ label: language === 'en' ? '📝 Prefill Light Form' : '📝 फ़ॉर्म भरें', action: 'go_streetlight' }],
-          },
-        ]);
-      } else if (action === 'garbage') {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            text: language === 'en'
-              ? 'Understood. I will prepare a Sanitation report. Click below to prefill the grievance form.'
-              : 'समझ गया। मैं सफाई की शिकायत तैयार करूँगा। नीचे क्लिक करके फ़ॉर्म भरें।',
-            options: [{ label: language === 'en' ? '📝 Prefill Sanitation Form' : '📝 फ़ॉर्म भरें', action: 'go_garbage' }],
-          },
-        ]);
+      } else if (action === 'go_report') {
+        navigate('/report');
+        setIsOpen(false);
       } else if (action === 'track') {
         setMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
             text: language === 'en'
-              ? 'Click below to view the official tracking receipt for sample grievance SC-2026-000001, or enter your reference ID.'
-              : 'नमूना शिकायत SC-2026-000001 की आधिकारिक स्थिति रसीद देखने के लिए नीचे क्लिक करें।',
-            options: [{ label: language === 'en' ? '🔍 View Sample Receipt' : '🔍 रसीद देखें', action: 'go_receipt' }],
+              ? 'Please enter your 14-digit Grievance Registration Number (e.g. SC-2026-000001) in the box below, or view the sample audit dossier:'
+              : 'कृपया नीचे दिए गए बॉक्स में अपना संदर्भ क्रमांक (जैसे SC-2026-000001) लिखें या नमूना ऑडिट देखें:',
+            options: [
+              { label: 'View Sample Grievance SC-2026-000001', action: 'go_sample_track' },
+              { label: language === 'en' ? 'Main Menu ↺' : 'मुख्य मेनू ↺', action: 'reset' },
+            ],
           },
         ]);
-      } else if (action === 'go_pothole' || action === 'go_streetlight' || action === 'go_garbage') {
-        setIsOpen(false);
-        navigate('/report');
-      } else if (action === 'go_receipt') {
-        setIsOpen(false);
+      } else if (action === 'go_sample_track') {
         navigate('/complaints/SC-2026-000001');
+        setIsOpen(false);
+      } else if (action === 'charter') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: language === 'en'
+              ? 'Under the Citizen Charter (नागरिक अधिकार पत्र):\n• Potholes & Road Cracks: 48 Hours\n• Water Contamination / Burst: 12 Hours\n• Street Light Outage: 24 Hours\n• Garbage Clearance: 8 Hours\n• Drainage Desilting: 36 Hours'
+              : 'नागरिक अधिकार पत्र के तहत निवारण समयसीमा:\n• सड़क के गड्ढे: 48 घंटे\n• पाइपलाइन लीकेज: 12 घंटे\n• स्ट्रीट लाइट: 24 घंटे\n• कचरा उठाव: 8 घंटे\n• नाला सफाई: 36 घंटे',
+            options: [
+              { label: language === 'en' ? 'File a Grievance Now' : 'शिकायत दर्ज करें', action: 'go_report' },
+              { label: language === 'en' ? 'Main Menu ↺' : 'मुख्य मेनू ↺', action: 'reset' },
+            ],
+          },
+        ]);
+      } else if (action === 'emergency') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: language === 'en'
+              ? 'Official Emergency Contact Numbers:\n• National Emergency: 112\n• Municipal Grievance Helpline: 1800-11-2026\n• Water & Sewerage Desk: 1916\n• Electricity Fault: 1912\n• Fire & Rescue: 101'
+              : 'आधिकारिक आपातकालीन नंबर:\n• राष्ट्रीय आपातकाल: 112\n• नगर निगम हेल्पलाइन: 1800-11-2026\n• जल एवं सीवरेज: 1916\n• विद्युत सहायता: 1912\n• अग्निशमन: 101',
+            options: [
+              { label: language === 'en' ? 'Main Menu ↺' : 'मुख्य मेनू ↺', action: 'reset' },
+            ],
+          },
+        ]);
+      } else if (action === 'officer') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: language === 'en'
+              ? 'Municipal Nodal Officers are available at Ward Offices from 10:00 AM to 5:00 PM on working days. You can also view the Ward GIS Intelligence console for field officer jurisdictions.'
+              : 'वार्ड नोडल अधिकारी कार्यदिवसों में सुबह 10 से शाम 5 बजे तक उपलब्ध हैं। आप वार्ड जीआईएस कंसोल भी देख सकते हैं।',
+            options: [
+              { label: language === 'en' ? 'Open GIS Console ➔' : 'जीआईएस कंसोल खोलें ➔', action: 'go_gis' },
+              { label: language === 'en' ? 'Main Menu ↺' : 'मुख्य मेनू ↺', action: 'reset' },
+            ],
+          },
+        ]);
+      } else if (action === 'go_gis') {
+        navigate('/home');
+        setIsOpen(false);
+      } else if (action === 'reset') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'bot',
+            text: initialBotMessages[language].text,
+            options: initialBotMessages[language].options,
+          },
+        ]);
       }
-    }, 600);
+    }, 400);
   };
 
   const handleSend = () => {
-    const trimmed = inputValue.trim();
-    if (!trimmed) return;
+    if (!inputValue.trim()) return;
 
-    setMessages((prev) => [...prev, { sender: 'user', text: trimmed }]);
+    const userText = inputValue.trim();
+    setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
     setInputValue('');
 
-    const lowerText = trimmed.toLowerCase();
-
+    // Check if user entered a complaint reference ID
+    const refMatch = userText.match(/SC-\d{4}-\d{6}/i);
     setTimeout(() => {
-      if (lowerText.includes('pothole') || lowerText.includes('road') || lowerText.includes('गड्ढा') || lowerText.includes('सड़क')) {
+      if (refMatch) {
         setMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
             text: language === 'en'
-              ? 'I detected a road maintenance concern. Would you like to launch the grievance form?'
-              : 'मुझे सड़क से संबंधित शिकायत मिली। क्या आप नया फ़ॉर्म भरना चाहते हैं?',
-            options: [{ label: language === 'en' ? '📝 Prefill Road Form' : '📝 फ़ॉर्म भरें', action: 'go_pothole' }],
-          },
-        ]);
-      } else if (lowerText.includes('track') || lowerText.includes('status') || lowerText.includes('स्थिति') || lowerText.includes('sc-')) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            text: language === 'en'
-              ? 'Here is the direct link to the grievance tracking audit page.'
-              : 'शिकायत ट्रैकिंग ऑडिट पृष्ठ का सीधा लिंक यहाँ है।',
-            options: [{ label: language === 'en' ? '🔍 Open Tracking Audit' : '🔍 स्थिति देखें', action: 'go_receipt' }],
+              ? `Reference ID ${refMatch[0].toUpperCase()} found! Click below to view the official grievance dossier:`
+              : `संदर्भ संख्या ${refMatch[0].toUpperCase()} प्राप्त हुई! आधिकारिक डॉसियर देखने के लिए क्लिक करें:`,
+            options: [
+              { label: `Audit ${refMatch[0].toUpperCase()}`, action: 'go_custom_track' },
+            ],
           },
         ]);
       } else {
@@ -154,102 +192,120 @@ export function Assistant() {
           {
             sender: 'bot',
             text: language === 'en'
-              ? 'Thank you. I have recorded your inquiry. You can file a formal complaint using the button below.'
-              : 'धन्यवाद। आप नीचे दिए गए बटन से नई शिकायत भी दर्ज कर सकते हैं।',
-            options: [{ label: language === 'en' ? '📝 Open Grievance Form' : '📝 फ़ॉर्म पर जाएँ', action: 'go_pothole' }],
+              ? `Thank you for your query regarding "${userText}". How would you like to proceed?`
+              : `"${userText}" के संबंध में आपके प्रश्न के लिए धन्यवाद। आप क्या करना चाहेंगे?`,
+            options: [
+              { label: language === 'en' ? '📝 Lodge Grievance Form' : '📝 शिकायत दर्ज करें', action: 'report' },
+              { label: language === 'en' ? '🔍 Track Grievance Status' : '🔍 स्थिति ट्रैक करें', action: 'track' },
+              { label: language === 'en' ? 'Main Menu ↺' : 'मुख्य मेनू ↺', action: 'reset' },
+            ],
           },
         ]);
       }
-    }, 600);
+    }, 500);
   };
 
-  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
       handleSend();
     }
   };
 
   return (
-    <>
-      {/* Floating Trigger Button */}
-      <button
-        onClick={() => setIsOpen((current) => !current)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/30 transition-all hover:scale-110 active:scale-95"
-        title="Sahayak - Smart City AI Citizen Assistant"
-        type="button"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageSquare className="h-6 w-6" />}
-      </button>
+    <aside aria-label="Official Citizen Virtual Assistant" className="fixed bottom-6 right-6 z-50">
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          type="button"
+          className="group relative flex items-center gap-2.5 rounded-full bg-[#0A2540] px-4 py-3 text-white shadow-2xl border-2 border-amber-400 hover:bg-[#06182B] active:scale-95 transition-all dark:bg-blue-700"
+          aria-label="Open Sahayak Citizen Virtual Assistant"
+        >
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-slate-950">
+            <Bot className="h-4 w-4" />
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+            </span>
+          </div>
 
-      {/* Floating Chat Modal */}
+          <div className="flex flex-col text-left">
+            <span className="text-[10px] font-hindi font-bold text-amber-300 leading-tight">सहायक · 24x7</span>
+            <span className="text-xs font-black tracking-wide leading-tight">Citizen Sahayak</span>
+          </div>
+        </button>
+      )}
+
       {isOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 flex h-[30rem] w-[calc(100vw-2rem)] sm:w-96 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-950 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="relative flex h-[540px] w-[350px] sm:w-[380px] flex-col overflow-hidden rounded-2xl border-2 border-[#0A2540] bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 animate-in fade-in zoom-in-95 duration-200">
+          
           {/* Header */}
-          <div className="flex items-center justify-between bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-4 text-white">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-[#0A2540] px-4 py-3 text-white dark:border-slate-800 dark:bg-[#05111F]">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white">
-                <Bot className="h-4 w-4" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-black">
+                🏛️
               </div>
               <div>
-                <h3 className="text-xs font-bold tracking-wide flex items-center gap-1.5">
-                  SAHAYAK AI <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                </h3>
-                <p className="text-[10px] text-slate-300">Smart City Citizen Desk</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-hindi text-xs font-bold text-amber-300">सहायक (Sahayak)</span>
+                  <span className="rounded bg-emerald-500/30 px-1 py-0.2 text-[8px] font-extrabold text-emerald-300 border border-emerald-500/40">
+                    Official Bot
+                  </span>
+                </div>
+                <span className="block text-[10px] text-slate-300">
+                  Smart City Citizen Helpdesk
+                </span>
               </div>
             </div>
 
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold tracking-wider hover:bg-white/20 transition"
-              type="button"
-            >
-              <Globe2 className="h-3 w-3" />
-              <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              {/* Language Switch */}
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-200 hover:bg-slate-700 border border-slate-700"
+                title="Switch Language (हिन्दी / English)"
+              >
+                <Globe2 className="h-3 w-3 text-amber-400" />
+                <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                aria-label="Close Assistant"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Tricolor line */}
-          <div className="flex h-1 w-full">
-            <div className="h-full w-1/3 bg-[#FF9933]" />
-            <div className="h-full w-1/3 bg-white" />
-            <div className="h-full w-1/3 bg-[#138808]" />
-          </div>
-
-          {/* Chat Messages Body */}
-          <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-900/30">
-            {messages.map((msg, index) => (
+          {/* Messages Viewport */}
+          <div className="flex-1 space-y-3 overflow-y-auto p-4 text-xs bg-slate-50/70 dark:bg-slate-950/60">
+            {messages.map((msg, idx) => (
               <div
-                key={`${msg.sender}-${index}`}
+                key={idx}
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed ${
+                  className={`max-w-[88%] rounded-xl px-3.5 py-2.5 text-xs shadow-sm ${
                     msg.sender === 'user'
-                      ? 'rounded-tr-none bg-blue-600 text-white font-medium shadow-sm'
-                      : 'rounded-tl-none border border-slate-200 bg-white text-slate-800 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200'
+                      ? 'bg-[#0A2540] text-white dark:bg-blue-600 rounded-br-none'
+                      : 'bg-white text-slate-800 border border-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-800 rounded-bl-none'
                   }`}
                 >
-                  {msg.text}
+                  <p className="whitespace-pre-line leading-relaxed">{msg.text}</p>
                 </div>
 
-                {msg.options && msg.options.length > 0 && (
-                  <div className="mt-2 flex w-full max-w-[88%] flex-col gap-1.5">
-                    {msg.options.map((opt) => (
+                {/* Quick Action Options */}
+                {msg.options && (
+                  <div className="mt-2 flex flex-col gap-1.5 w-full">
+                    {msg.options.map((opt, optIdx) => (
                       <button
-                        key={opt.action}
-                        onClick={() => {
-                          if (opt.action === 'go_pothole' || opt.action === 'go_streetlight' || opt.action === 'go_garbage') {
-                            setIsOpen(false);
-                            navigate('/report');
-                          } else if (opt.action === 'go_receipt') {
-                            setIsOpen(false);
-                            navigate('/complaints/SC-2026-000001');
-                          } else {
-                            handleOptionClick(opt.action, opt.label);
-                          }
-                        }}
-                        className="w-full rounded-xl border border-slate-200 bg-white p-2 text-left text-[11px] font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 transition"
+                        key={optIdx}
                         type="button"
+                        onClick={() => handleOptionClick(opt.action, opt.label)}
+                        className="w-full text-left rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-700 hover:border-amber-500 hover:bg-amber-50/50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition shadow-sm"
                       >
                         {opt.label}
                       </button>
@@ -260,26 +316,33 @@ export function Assistant() {
             ))}
           </div>
 
-          {/* Input Bar */}
-          <div className="flex gap-2 border-t border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder={language === 'en' ? 'Ask Sahayak anything...' : 'सहायक से पूछें...'}
-              className="flex-1 rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-xs text-slate-900 outline-none focus:bg-white focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-            />
-            <button
-              onClick={handleSend}
-              className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 transition"
-              type="button"
-            >
-              <Send className="h-3.5 w-3.5" />
-            </button>
+          {/* Chat Input */}
+          <div className="border-t border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={language === 'en' ? 'Type grievance or Ref ID (e.g. SC-2026)...' : 'शिकायत या संदर्भ संख्या लिखें...'}
+                className="flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0A2540] focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              />
+              <button
+                type="button"
+                onClick={handleSend}
+                className="rounded-lg bg-[#0A2540] p-2 text-white hover:bg-[#06182B] active:scale-95 transition dark:bg-blue-600"
+                aria-label="Send message"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-1.5 flex items-center justify-between text-[9px] text-slate-400">
+              <span>National Grievance AI Desk</span>
+              <span className="font-mono">STQC Audited</span>
+            </div>
           </div>
         </div>
       )}
-    </>
+    </aside>
   );
 }
