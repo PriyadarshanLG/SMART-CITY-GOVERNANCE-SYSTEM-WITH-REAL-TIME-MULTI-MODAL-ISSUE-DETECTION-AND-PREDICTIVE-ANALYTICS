@@ -2031,35 +2031,35 @@ export function DashboardPage() {
       <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 space-y-6">
         
         {/* ------------------------------------------------------------------- */}
-        {/* UNIFIED FULL-WIDTH WELCOME BOX WITH INTEGRATED RIGHT LIVE MAP       */}
+        {/* UNIFIED COMPACT WELCOME BOX WITH BORDERLESS MAP (~40% WIDTH)        */}
         {/* ------------------------------------------------------------------- */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-600 via-indigo-700 to-purple-800 p-6 sm:p-7 text-white shadow-2xl shadow-blue-600/15 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-5 sm:p-6 text-white shadow-xl shadow-blue-500/10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             
-            {/* Left Side: Welcome Text & Action Buttons (6 cols) */}
-            <div className="lg:col-span-6 space-y-4">
-              <div className="space-y-2">
+            {/* Left Side: Welcome Greeting & Action Buttons (~60% width) */}
+            <div className="flex-1 space-y-3">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full text-blue-100 backdrop-blur-md">
+                  <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full text-blue-100 backdrop-blur-md">
                     JanSeva · Citizen Portal
                   </span>
                   <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-white">
                   Welcome back, {user?.name || 'Citizen'} 👋
                 </h2>
 
-                <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed max-w-xl">
-                  Real-time multi-department issue detection, GPS geo-tagging, and 5-day SLA escalation monitoring across {userCity}.
+                <p className="text-xs sm:text-sm text-blue-100/90 max-w-xl">
+                  Real-time multi-department issue detection, GPS geo-tagging, and 5-day SLA escalation monitoring.
                 </p>
               </div>
 
-              <div className="pt-2 flex flex-wrap items-center gap-3">
+              <div className="pt-1 flex flex-wrap items-center gap-2.5">
                 <button
                   type="button"
                   onClick={() => navigate('/report')}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-xs sm:text-sm font-black text-blue-700 hover:bg-blue-50 hover:shadow-lg active:scale-95 transition shrink-0 shadow-md"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-xs sm:text-sm font-black text-blue-700 hover:bg-blue-50 hover:shadow-lg active:scale-95 transition shrink-0 shadow-md"
                 >
                   <PlusCircle className="h-4 w-4" />
                   <span>Report New Grievance</span>
@@ -2068,7 +2068,7 @@ export function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsTrackModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-4 py-3 text-xs font-bold text-white hover:bg-white/20 transition backdrop-blur-sm"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/20 transition backdrop-blur-sm"
                 >
                   <Search className="h-4 w-4 text-blue-200" />
                   <span>Track Token</span>
@@ -2076,36 +2076,9 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {/* Right Side: Integrated Live Location Map (6 cols - inside the Welcome Box!) */}
-            <div className="lg:col-span-6 rounded-2xl border border-white/20 bg-slate-950/60 p-3.5 backdrop-blur-md space-y-3">
-              
-              {/* Map Header inside Welcome Box */}
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
-                    <MapPin className="h-4 w-4 animate-bounce" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black text-white flex items-center gap-1.5">
-                      <span>📍 Live Current Location</span>
-                    </h3>
-                    <p className="text-[10px] text-blue-200/80">{userCity} District Jurisdiction</p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleDetectLiveGPS}
-                  className="flex items-center gap-1 text-[10px] font-bold text-white bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-xl transition border border-white/20 backdrop-blur-sm"
-                  title="Detect Live Current Location"
-                >
-                  <LocateFixed className="h-3 w-3" />
-                  <span>{isDetectingGPS ? 'Detecting...' : 'Detect Location'}</span>
-                </button>
-              </div>
-
-              {/* Interactive Map View */}
-              <div className="relative rounded-xl overflow-hidden border border-white/15 bg-slate-950 h-36 w-full shadow-inner group">
+            {/* Right Side: Map ONLY (~38-40% width, NO black borders, NO heavy extra frames!) */}
+            <div className="w-full lg:w-[38%] shrink-0">
+              <div className="relative rounded-2xl overflow-hidden shadow-lg border border-white/20 h-32 sm:h-36 w-full group">
                 <iframe
                   title="Live Citizen Map"
                   width="100%"
@@ -2114,35 +2087,27 @@ export function DashboardPage() {
                   scrolling="no"
                   marginHeight={0}
                   marginWidth={0}
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${liveCoords.lng - 0.02},${liveCoords.lat - 0.02},${liveCoords.lng + 0.02},${liveCoords.lat + 0.02}&layer=mapnik&marker=${liveCoords.lat},${liveCoords.lng}`}
-                  className="w-full h-full opacity-90 group-hover:opacity-100 transition"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${liveCoords.lng - 0.015},${liveCoords.lat - 0.015},${liveCoords.lng + 0.015},${liveCoords.lat + 0.015}&layer=mapnik&marker=${liveCoords.lat},${liveCoords.lng}`}
+                  className="w-full h-full opacity-95 group-hover:opacity-100 transition"
                 />
 
-                {/* Live Location Marker Overlay */}
-                <div className="absolute top-2 left-2 bg-slate-950/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-md">
-                  <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Current Location Pin</span>
+                {/* Minimal Live Location Badge */}
+                <div className="absolute top-2 left-2 bg-slate-950/80 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-bold text-white flex items-center gap-1.5 shadow-sm border border-white/20">
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span>📍 Live Location</span>
                 </div>
+
+                {/* Minimal Detect GPS Button overlay */}
+                <button
+                  type="button"
+                  onClick={handleDetectLiveGPS}
+                  className="absolute bottom-2 right-2 bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-bold text-white flex items-center gap-1 shadow-sm border border-white/20 transition"
+                  title="Detect Current Location"
+                >
+                  <LocateFixed className="h-3 w-3 text-blue-300" />
+                  <span>{isDetectingGPS ? 'Detecting...' : 'Detect'}</span>
+                </button>
               </div>
-
-              {/* Current Location Info Bar (No Ward - Clean Address) */}
-              <div className="rounded-xl bg-white/10 p-2.5 border border-white/15 flex items-center justify-between text-xs text-white">
-                <div className="flex items-center gap-2 truncate">
-                  <MapPin className="h-4 w-4 text-emerald-400 shrink-0" />
-                  <div className="truncate">
-                    <span className="text-[10px] text-blue-200 block font-semibold">Current Location:</span>
-                    <span className="font-bold truncate text-white block text-xs">
-                      {liveAddress || `Central Ring Road, ${userCity}, Karnataka`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0 pl-2 font-mono text-[10px] text-amber-300 font-bold">
-                  <div>Lat: {liveCoords.lat.toFixed(4)}°N</div>
-                  <div>Lng: {liveCoords.lng.toFixed(4)}°E</div>
-                </div>
-              </div>
-
             </div>
 
           </div>
