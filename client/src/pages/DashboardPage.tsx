@@ -12,6 +12,7 @@ import {
   Camera,
   Search,
   CheckCircle2,
+  LocateFixed,
   Clock,
   AlertCircle,
   PlusCircle,
@@ -163,6 +164,31 @@ export function DashboardPage() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [trackingIdInput, setTrackingIdInput] = useState('');
+
+  // Live GPS Map States for Citizen Dashboard
+  const [liveCoords, setLiveCoords] = useState<{ lat: number; lng: number }>({ lat: 13.0042, lng: 76.1018 });
+  const [liveAddress, setLiveAddress] = useState<string>('Hassan Ward 04, Central Ring Road');
+  const [isDetectingGPS, setIsDetectingGPS] = useState(false);
+
+  const handleDetectLiveGPS = () => {
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      setIsDetectingGPS(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setIsDetectingGPS(false);
+          const newLat = pos.coords.latitude;
+          const newLng = pos.coords.longitude;
+          setLiveCoords({ lat: newLat, lng: newLng });
+          setLiveAddress(`Live GPS: Lat ${newLat.toFixed(4)}°, Lng ${newLng.toFixed(4)}°`);
+        },
+        () => {
+          setIsDetectingGPS(false);
+          setLiveCoords({ lat: 13.0042, lng: 76.1018 });
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  };
 
   // Department Dashboard States (Per Sketch: Complaints, Details, Completed + Share Image, Other Complaints + Push)
   const [selectedComplaintId, setSelectedComplaintId] = useState<string>('');
@@ -2004,29 +2030,112 @@ export function DashboardPage() {
       {/* ------------------------------------------------------------------- */}
       <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 space-y-6">
         
-        {/* Welcome Strip */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-6 sm:p-7 text-white shadow-xl shadow-blue-500/10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-200">
-                Welcome back
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black">
-                {user?.name || 'Citizen'}, Track and Resolve Civic Grievances
+        {/* ------------------------------------------------------------------- */}
+        {/* TOP SECTION GRID: LEFT WELCOME CARD (7 cols) + RIGHT LIVE MAP (5 cols) */}
+        {/* ------------------------------------------------------------------- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          
+          {/* Left: Welcome Card (Resized to 7 cols) */}
+          <div className="lg:col-span-7 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-6 sm:p-7 text-white shadow-xl shadow-blue-500/10 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-1 rounded-full text-blue-100 backdrop-blur-sm">
+                  JanSeva Citizen Command Desk
+                </span>
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-black text-white">
+                Welcome back, {user?.name || 'Citizen'} 👋
               </h2>
-              <p className="text-xs sm:text-sm text-blue-100/90 max-w-2xl">
-                Real-time multi-department issue detection, GPS geo-tagging, and 5-day SLA escalation monitoring.
+
+              <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+                Real-time multi-department issue detection, GPS geo-tagging, and 5-day SLA escalation monitoring across {userCity}.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => navigate('/report')}
-              className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-xs sm:text-sm font-black text-blue-700 hover:bg-blue-50 hover:shadow-lg active:scale-95 transition shrink-0"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span>Report New Grievance</span>
-            </button>
+            <div className="pt-4 flex flex-wrap items-center gap-3 border-t border-white/15 mt-4">
+              <button
+                type="button"
+                onClick={() => navigate('/report')}
+                className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-2.5 text-xs sm:text-sm font-black text-blue-700 hover:bg-blue-50 hover:shadow-lg active:scale-95 transition shrink-0 shadow-md"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span>Report New Grievance</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsTrackModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/20 transition backdrop-blur-sm"
+              >
+                <Search className="h-4 w-4 text-blue-200" />
+                <span>Track Token</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Live GPS Map Card (5 cols - in the leftover top space!) */}
+          <div className="lg:col-span-5 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xl space-y-3 flex flex-col justify-between">
+            
+            {/* Card Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 px-1">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <MapPin className="h-4 w-4 animate-bounce" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>📍 Live GPS Location Map</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Real-time Ward Jurisdiction GPS</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleDetectLiveGPS}
+                className="flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-1 rounded-xl transition border border-blue-500/20"
+                title="Detect Live Browser Geolocation"
+              >
+                <LocateFixed className="h-3 w-3" />
+                <span>{isDetectingGPS ? 'Detecting...' : 'Detect GPS'}</span>
+              </button>
+            </div>
+
+            {/* Map View / Frame */}
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 h-36 w-full shadow-inner group">
+              <iframe
+                title="Live Citizen Map"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight={0}
+                marginWidth={0}
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${liveCoords.lng - 0.02},${liveCoords.lat - 0.02},${liveCoords.lng + 0.02},${liveCoords.lat + 0.02}&layer=mapnik&marker=${liveCoords.lat},${liveCoords.lng}`}
+                className="w-full h-full opacity-90 group-hover:opacity-100 transition"
+              />
+
+              {/* Floating Address Overlay Badge */}
+              <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-md rounded-xl p-2 text-white text-[10px] border border-slate-700/80 flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                  <span className="font-bold truncate text-slate-200">{liveAddress || `${userCity} Ward 04, Central Ring Road`}</span>
+                </div>
+                <span className="font-mono text-[9px] text-amber-400 font-bold shrink-0 pl-1">
+                  {liveCoords.lat.toFixed(4)}°N, {liveCoords.lng.toFixed(4)}°E
+                </span>
+              </div>
+            </div>
+
+            {/* Footer Info Pill */}
+            <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 px-1 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <span className="font-medium text-slate-600 dark:text-slate-400">Jurisdiction: <strong className="text-slate-900 dark:text-white font-bold">{userCity} Municipal Corp</strong></span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                <Radio className="h-3 w-3 animate-pulse" /> Active Geofence
+              </span>
+            </div>
           </div>
         </div>
 
