@@ -1981,19 +1981,20 @@ export function DashboardPage() {
       </header>
 
       {/* ------------------------------------------------------------------- */}
-      {/* RED MOVING ALERT MESSAGES TICKER LINE BELOW HEADER                    */}
+      {/* HIGH-VISIBILITY DIMMED RED SCROLLING ALERT TICKER LINE BELOW HEADER */}
       {/* ------------------------------------------------------------------- */}
-      <div className="w-full bg-red-600 dark:bg-red-700 text-white text-xs font-bold py-2 px-4 shadow-md flex items-center gap-3 overflow-hidden border-b border-red-700 dark:border-red-800">
-        <div className="flex items-center gap-1.5 shrink-0 bg-red-800 dark:bg-red-900 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse shadow-sm">
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
+      <div className="w-full bg-slate-950 dark:bg-slate-950/95 border-y border-red-500/40 py-2.5 px-4 shadow-lg flex items-center gap-3 overflow-hidden backdrop-blur-md">
+        <div className="flex items-center gap-1.5 shrink-0 bg-gradient-to-r from-red-600 to-rose-700 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md shadow-red-600/30 z-20">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
           <span>URGENT ALERTS</span>
         </div>
 
-        <div className="whitespace-nowrap overflow-hidden flex-1 relative">
-          <div className="inline-block animate-marquee pl-4 space-x-12">
-            <span>🚨 HEAVY RAINFALL WARNING: Emergency response crews deployed for Ward 04 & Central Market sector.</span>
-            <span>⚡ LIVE SLA MONITORING: All civic complaints automatically routed to designated Ward Engineers with 24-hr resolution tracking.</span>
-            <span>📞 MUNICIPAL HELPLINE: Toll-free 24/7 hotline 1800-425-2026 active for emergency flood & power outage reports.</span>
+        <div className="overflow-hidden flex-1 relative flex items-center z-10">
+          <div className="animate-marquee text-xs font-mono font-bold text-amber-300 dark:text-amber-200 tracking-wide">
+            <span>🚨 HEAVY RAINFALL WARNING: Emergency response crews deployed for Ward 04 & Central Market sector &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
+            <span>⚡ LIVE SLA MONITORING: All civic complaints automatically routed to designated Ward Engineers with 24-hr resolution tracking &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
+            <span>📞 MUNICIPAL HELPLINE: Toll-free 24/7 hotline 1800-425-2026 active for emergency flood & power outage reports &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
+            <span>🌾 AGRICULTURE ADVISORY: Coconut & Paddy crop fungal rot diagnostic advisory active for Hassan district farmers</span>
           </div>
         </div>
       </div>
