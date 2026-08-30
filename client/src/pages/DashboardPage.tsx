@@ -1872,7 +1872,7 @@ export function DashboardPage() {
       <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
 
       {/* ------------------------------------------------------------------- */}
-      {/* CITIZEN HEADER (Per Sketch: Overview | Complaints | Tracking ID | Emergency | Alerts | Profile) */}
+      {/* CITIZEN HEADER (Clean Single-Row Layout: Branding | Nav Items | Profile, Sun/Moon, Logout) */}
       {/* ------------------------------------------------------------------- */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8 gap-3 flex-wrap">
@@ -1895,20 +1895,22 @@ export function DashboardPage() {
             </div>
           </div>
 
-          {/* Center Navigation Pills per Sketch: Overview | Complaints | Tracking ID | Emergency Helpline */}
-          <nav className="hidden xl:flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1 text-xs font-extrabold">
+          {/* Center/Right Navigation Bar per Wireframe Sketch */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-bold">
+            {/* Nav Item 1: Overview */}
             <button
               type="button"
               onClick={() => setActiveTab('overview')}
               className={`px-3 py-1.5 rounded-xl transition ${
                 activeTab === 'overview'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400'
+                  ? 'bg-blue-600 text-white shadow-sm font-extrabold'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900'
               }`}
             >
               Overview
             </button>
 
+            {/* Nav Item 2: Complaints */}
             <button
               type="button"
               onClick={() => {
@@ -1916,121 +1918,60 @@ export function DashboardPage() {
                 const el = document.getElementById('recent-complaints-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-3 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+              className="px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
             >
               Complaints
             </button>
 
+            {/* Nav Item 3: Tracking ID */}
             <button
               type="button"
               onClick={() => setIsTrackModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1"
+              className="px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition flex items-center gap-1"
             >
               <Search className="h-3.5 w-3.5 text-blue-500" />
               <span>Tracking ID</span>
             </button>
 
+            {/* Nav Item 4: Emergency Helpline Number */}
             <a
               href="tel:18004252026"
-              className="px-3 py-1.5 rounded-xl text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition flex items-center gap-1 shrink-0"
+              className="px-3 py-1.5 rounded-xl text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition flex items-center gap-1 shrink-0 font-extrabold"
               title="Toll-Free Emergency Grievance Helpline"
             >
               <PhoneCall className="h-3.5 w-3.5 text-amber-500" />
               <span>Helpline: 1800-425-2026</span>
             </a>
-          </nav>
 
-          {/* Right: Alerts, Demo Data, Profile, Theme Switcher & Logout */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Button 1: Report Complaint */}
-            <button
-              type="button"
-              onClick={() => navigate('/report')}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">+ Report Grievance</span>
-            </button>
-
-            {/* Button 2: Quick Demo Data Toggle */}
-            <button
-              type="button"
-              onClick={() => {
-                if (complaints.length === 0) {
-                  seedSampleComplaintsForDemo();
-                } else {
-                  clearAllComplaints();
-                }
-              }}
-              className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm"
-              title="Click to toggle sample complaints across all 4 departments for demo preview"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
-              <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
-            </button>
-
-            {/* Alert Messages Dropdown Button */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
-              >
-                <BellRing className="h-4 w-4 text-amber-500" />
-                <span className="hidden sm:inline">Alerts</span>
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white">
-                  {districtComplaints.length || 1}
-                </span>
-              </button>
-
-              {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xl z-50 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">Alert Messages</span>
-                    <span className="text-[10px] text-slate-400">City Status</span>
-                  </div>
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
-                    {notifications.map((n) => (
-                      <div key={n.id} className="py-2 text-xs space-y-0.5">
-                        <p className="text-slate-800 dark:text-slate-200">{n.text}</p>
-                        <span className="text-[10px] text-slate-400">{n.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Button */}
+            {/* Nav Item 5: Profile (Beside Helpline Number) */}
             <button
               type="button"
               onClick={() => setIsProfileModalOpen(true)}
-              className="flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              title="View Citizen Profile & Municipal Registration"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-xs">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'C'}
-              </div>
-              <span className="hidden sm:inline text-xs font-bold text-slate-900 dark:text-white">Profile</span>
+              <User className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Profile</span>
             </button>
 
-            {/* Dark / Light Toggle */}
+            {/* Nav Item 6: Sun/Moon Theme Switcher (Beside Helpline Number) */}
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
               title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
             </button>
 
-            {/* Logout */}
+            {/* Nav Item 7: Sign Out Symbol (Beside Helpline Number) */}
             <button
               type="button"
               onClick={() => {
                 logout();
                 navigate('/');
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition"
               title="Sign Out"
             >
               <LogOut className="h-4 w-4" />
@@ -2038,6 +1979,24 @@ export function DashboardPage() {
           </div>
         </div>
       </header>
+
+      {/* ------------------------------------------------------------------- */}
+      {/* RED MOVING ALERT MESSAGES TICKER LINE BELOW HEADER                    */}
+      {/* ------------------------------------------------------------------- */}
+      <div className="w-full bg-red-600 dark:bg-red-700 text-white text-xs font-bold py-2 px-4 shadow-md flex items-center gap-3 overflow-hidden border-b border-red-700 dark:border-red-800">
+        <div className="flex items-center gap-1.5 shrink-0 bg-red-800 dark:bg-red-900 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse shadow-sm">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
+          <span>URGENT ALERTS</span>
+        </div>
+
+        <div className="whitespace-nowrap overflow-hidden flex-1 relative">
+          <div className="inline-block animate-marquee pl-4 space-x-12">
+            <span>🚨 HEAVY RAINFALL WARNING: Emergency response crews deployed for Ward 04 & Central Market sector.</span>
+            <span>⚡ LIVE SLA MONITORING: All civic complaints automatically routed to designated Ward Engineers with 24-hr resolution tracking.</span>
+            <span>📞 MUNICIPAL HELPLINE: Toll-free 24/7 hotline 1800-425-2026 active for emergency flood & power outage reports.</span>
+          </div>
+        </div>
+      </div>
 
       {/* ------------------------------------------------------------------- */}
       {/* CITIZEN BODY: TWO COLUMN LAYOUT                                     */}
