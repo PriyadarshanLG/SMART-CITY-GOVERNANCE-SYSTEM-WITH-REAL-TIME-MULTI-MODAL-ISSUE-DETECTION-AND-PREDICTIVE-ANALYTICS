@@ -211,7 +211,8 @@ complaintRouter.post('/', async (req, res, next) => {
       citizenEmail: req.body.email || req.body.citizenEmail,
       title,
       description,
-      imageUrl: req.body.imageUrl,
+      imageUrl: req.body.imageUrl || req.body.image,
+      cropType: req.body.cropType,
       location: {
         ward,
         city,
@@ -268,15 +269,17 @@ complaintRouter.post('/:id/support', async (req, res, next) => {
   }
 });
 
-// 6. Update Status & Append Timeline Note (Officer / Admin workflow)
+// 6. Update Status & Append Timeline Note (Officer / Admin workflow with work-done image)
 complaintRouter.patch('/:id/status', async (req, res, next) => {
   try {
     const idParam = req.params.id;
-    const { status, note, assignedOfficerName, resolutionNotes } = req.body as {
+    const { status, note, assignedOfficerName, resolutionNotes, resolvedImageUrl, department } = req.body as {
       status: string;
       note?: string;
       assignedOfficerName?: string;
       resolutionNotes?: string;
+      resolvedImageUrl?: string;
+      department?: string;
     };
 
     if (!status) {
@@ -308,6 +311,14 @@ complaintRouter.patch('/:id/status', async (req, res, next) => {
 
     if (resolutionNotes) {
       updateDoc.$set.resolutionNotes = resolutionNotes;
+    }
+
+    if (resolvedImageUrl) {
+      updateDoc.$set.resolvedImageUrl = resolvedImageUrl;
+    }
+
+    if (department) {
+      updateDoc.$set.department = department;
     }
 
     if (status === 'Resolved' || status === 'Completed' || status === 'Citizen Verified') {

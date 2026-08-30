@@ -7,11 +7,10 @@ export interface UserProfile {
   email: string;
   role: 'Citizen' | 'Government Officer' | 'Department Head' | 'Admin' | string;
   phone?: string;
-  stateCode?: string;
+  language?: string;
   state?: string;
   district?: string;
   city?: string;
-  language?: string;
 }
 
 interface AuthContextType {
@@ -23,10 +22,9 @@ interface AuthContextType {
   registerUser: (data: {
     name: string;
     email: string;
-    password?: string;
+    password: string;
     phone?: string;
     role?: string;
-    stateCode?: string;
     state?: string;
     district?: string;
     city?: string;
@@ -94,17 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const registerUser = async (data: {
-    name: string;
-    email: string;
-    password?: string;
-    phone?: string;
-    role?: string;
-    stateCode?: string;
-    state?: string;
-    district?: string;
-    city?: string;
-  }) => {
+  const registerUser = async (data: { name: string; email: string; password: string; phone?: string; role?: string }) => {
     try {
       const res = await api.post('/auth/register', data);
       if (res.data?.accessToken && res.data?.user) {

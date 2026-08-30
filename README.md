@@ -334,9 +334,7 @@ smart-city-governance-system/
 │   │   │   ├── HomePage.tsx           # Public grievance feed & interactive ward map
 │   │   │   ├── ComplaintFormPage.tsx  # Multi-modal grievance reporting form with AI assist
 │   │   │   ├── ComplaintDetailsPage.tsx # Issue timeline, updates & citizen verification
-│   │   │   ├── DashboardPage.tsx      # Role-based workspace (Citizen/Officer/DeptHead/Admin)
-│   │   │   ├── LoginPage.tsx          # Authentication with 1-click instant role selectors
-│   │   │   └── RegisterPage.tsx       # New citizen registration
+│   │   │   └── DashboardPage.tsx      # Role-based workspace (Citizen/Officer/DeptHead/Admin)
 │   │   ├── styles/             # Global CSS and custom design tokens
 │   │   ├── App.tsx             # React Router routing configuration
 │   │   └── main.tsx            # React application entrypoint

@@ -13,28 +13,27 @@ import {
 } from 'recharts';
 import {
   BellRing,
-  Building2,
-  Calendar,
   CheckCircle2,
   Clock,
-  Compass,
   Flame,
-  Globe2,
-  Landmark,
   Layers,
   Map,
-  MapPin,
   PhoneCall,
   Radio,
-  Search,
   ShieldCheck,
   TrendingUp,
   TriangleAlert,
   Users,
   Zap,
 } from 'lucide-react';
-import { GovernmentEmblem } from '../components/layout/GovernmentEmblem';
-import { Link } from 'react-router-dom';
+
+interface StatCard {
+  label: string;
+  value: string;
+  change: string;
+  isPositive: boolean;
+  icon: typeof TrendingUp;
+}
 
 const complaintData = [
   { month: 'Jan', complaints: 92, resolved: 80 },
@@ -46,31 +45,40 @@ const complaintData = [
 ];
 
 const categories = [
-  { name: 'Road Damage (PWD)', count: 286, color: '#0A2540' },
-  { name: 'Solid Waste & Sanitation', count: 194, color: '#15803D' },
-  { name: 'Water Pipeline Leaks', count: 173, color: '#0284C7' },
-  { name: 'Drainage & Culverts', count: 149, color: '#7C3AED' },
-  { name: 'Streetlight Grid', count: 122, color: '#D97706' },
+  { name: 'Road Damage', count: 286 },
+  { name: 'Sanitation', count: 194 },
+  { name: 'Water Leak', count: 173 },
+  { name: 'Drainage', count: 149 },
+  { name: 'Street Lights', count: 122 },
 ];
 
 const wardData = [
-  { id: 'W-01', name: 'Central Ward (Civil Lines)', pending: 12, progressing: 5, completed: 88, officer: 'Er. D. Kulkarni, AEE', phone: '080-223401', responseTime: '6.2 hrs', slaCompliance: '92.4%' },
-  { id: 'W-02', name: 'West Sector (Gandhi Nagar)', pending: 8, progressing: 6, completed: 62, officer: 'Er. S. Patil, AEE', phone: '080-223402', responseTime: '8.4 hrs', slaCompliance: '88.1%' },
-  { id: 'W-03', name: 'South Avenue (Subhash Nagar)', pending: 15, progressing: 3, completed: 42, officer: 'Er. P. Nair, AEE', phone: '080-223403', responseTime: '11.1 hrs', slaCompliance: '78.5%' },
-  { id: 'W-04', name: 'Metro Ward (Indira Nagar)', pending: 4, progressing: 5, completed: 94, officer: 'Er. R. Sharma, AEE', phone: '080-223404', responseTime: '5.0 hrs', slaCompliance: '95.2%' },
+  { id: 'W-01', name: 'Central Ward', pending: 12, progressing: 5, completed: 88, officer: 'D. Kulkarni', phone: '080-223401', responseTime: '6.2 hrs' },
+  { id: 'W-02', name: 'West Sector', pending: 8, progressing: 6, completed: 62, officer: 'S. Patil', phone: '080-223402', responseTime: '8.4 hrs' },
+  { id: 'W-03', name: 'South Avenue', pending: 15, progressing: 3, completed: 42, officer: 'P. Nair', phone: '080-223403', responseTime: '11.1 hrs' },
+  { id: 'W-04', name: 'Metro Ward', pending: 4, progressing: 5, completed: 94, officer: 'R. Sharma', phone: '080-223404', responseTime: '5.0 hrs' },
 ];
 
-const publicHearings = [
-  { ward: 'Ward 01 & 02', date: 'Every Thursday, 11:00 AM', venue: 'Central Town Hall Auditorium', presiding: 'Municipal Commissioner & AEEs' },
-  { ward: 'Ward 03 & 04', date: 'Every Tuesday, 03:00 PM', venue: 'Metro Sector Community Center', presiding: 'Joint Commissioner & Executive Engineers' },
+const emergencyContacts = [
+  { name: 'Police Control Room', code: '100', desc: 'Law enforcement & security dispatch', badge: 'Police' },
+  { name: 'Fire & Rescue HQ', code: '101', desc: 'Fire hazards & flood extraction', badge: 'Fire' },
+  { name: 'Ambulance Emergency', code: '108', desc: '24/7 Paramedic and hospital triage', badge: 'Health' },
+  { name: 'Electricity Grievance', code: '1912', desc: 'Transformer faults & line breaks', badge: 'Power' },
+  { name: 'Water & Sewerage Desk', code: '1916', desc: 'Pipeline bursts & contamination', badge: 'Water' },
+  { name: 'Women Safety Helpline', code: '1091', desc: 'Immediate crisis assistance', badge: 'Safety' },
 ];
 
 export function HomePage() {
   const [selectedWard, setSelectedWard] = useState(wardData[0]!);
-  const [liveStats, setLiveStats] = useState({
+  const [liveStats, setLiveStats] = useState<{
+    total: number;
+    resolved: number;
+    inProgress: number;
+    slaRate: number;
+  }>({
     total: 18423,
-    resolved: 15620,
-    inProgress: 2803,
+    resolved: 14218,
+    inProgress: 2106,
     slaRate: 84.8,
   });
 
@@ -93,169 +101,321 @@ export function HomePage() {
     void loadStats();
   }, []);
 
+  const stats: StatCard[] = [
+    { label: 'Total Grievances', value: liveStats.total.toLocaleString(), change: '+12% this month', isPositive: true, icon: TrendingUp },
+    { label: 'Cases Resolved', value: liveStats.resolved.toLocaleString(), change: `${liveStats.slaRate}% SLA rate`, isPositive: true, icon: CheckCircle2 },
+    { label: 'Under Work Queue', value: liveStats.inProgress.toLocaleString(), change: 'Live field queue', isPositive: true, icon: BellRing },
+    { label: 'Enrolled Citizens', value: '61,204', change: '+240 today', isPositive: true, icon: Users },
+  ];
+
   return (
     <div className="page-shell py-8 space-y-8">
-      
-      {/* Official Municipal Command Header */}
-      <div className="gov-panel p-6 border-t-8 border-t-[#0A2540] dark:border-t-blue-500">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <GovernmentEmblem className="h-14 w-14 flex-shrink-0" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="gov-badge font-mono">GIS COMMAND CENTER</span>
-                <span className="gov-badge-green font-mono text-[9px]">LIVE TELEMETRY</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-black text-[#0A2540] dark:text-white mt-1">
-                Ward-Level GIS Analytics & Municipal Operations Center
-              </h1>
-              <h2 className="font-hindi text-xs font-bold text-slate-600 dark:text-slate-400">
-                वार्ड स्तरीय जीआईएस विश्लेषण, निवारण गतिशीलता एवं नगर नियंत्रण केंद्र
-              </h2>
-            </div>
+      {/* Top Header & Alert Banner */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="gov-badge">GIS Intelligence & Analytics Hub</span>
+            <span className="pill text-[10px]">
+              <Radio className="h-3 w-3 text-emerald-500 animate-pulse" /> Live Telemetry
+            </span>
           </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+            Civic Quality & Regional Operations
+          </h1>
+          <p className="mt-2 max-w-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            Real-time municipal operations surface for grievance intake, SLA resolution timelines, and interactive ward telemetry.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <Link to="/report" className="btn-gov-saffron text-xs">
-              Lodge New Grievance
-            </Link>
+        {/* Monsoon Advisory Banner */}
+        <div className="flex items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200 shadow-sm">
+          <TriangleAlert className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <span className="font-bold uppercase tracking-wide">Monsoon Drainage Watch:</span>
+            <p className="mt-0.5 text-slate-700 dark:text-slate-300">Wards W-01 and W-03 are on high-priority drainage dispatch.</p>
           </div>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Grievances Registered', value: liveStats.total.toLocaleString(), sub: 'CPGRAMS Synced', border: 'border-l-[#0A2540]' },
-          { label: 'Statutory Redressals', value: liveStats.resolved.toLocaleString(), sub: 'Within SLA Deadlines', border: 'border-l-emerald-600' },
-          { label: 'Active Field Repairs', value: liveStats.inProgress.toLocaleString(), sub: 'Under Active Work Orders', border: 'border-l-amber-600' },
-          { label: 'Municipal SLA Rate', value: `${liveStats.slaRate}%`, sub: 'Target: >90% SLA', border: 'border-l-blue-600' },
-        ].map((item) => (
-          <div key={item.label} className={`gov-panel border-l-4 p-4 ${item.border}`}>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">{item.label}</span>
-            <span className="font-mono text-2xl font-black text-[#0A2540] dark:text-white mt-1 block">{item.value}</span>
-            <span className="text-[10px] font-semibold text-slate-400 mt-1 block">{item.sub}</span>
+      {/* 4 Metric KPI Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map(({ label, value, change, isPositive, icon: Icon }) => (
+          <div key={label} className="metric-card surface-card-hover flex flex-col justify-between">
+            <div className="flex items-start justify-between">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white dark:bg-blue-600 shadow-sm">
+                <Icon className="h-5 w-5" />
+              </div>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                  isPositive
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-500/20'
+                    : 'bg-red-500/10 text-red-700 dark:bg-red-950/50 dark:text-red-400 border border-red-500/20'
+                }`}
+              >
+                {change}
+              </span>
+            </div>
+            <div className="mt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</p>
+              <p className="mt-1 text-3xl font-black tracking-tight text-slate-950 dark:text-white">{value}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Ward Telemetry & Jurisdiction Scorecard */}
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        
-        {/* Left: Ward Intelligence Matrix */}
-        <div className="gov-panel p-6 border border-slate-300 dark:border-slate-800">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#0A2540] dark:text-amber-400" />
-              <h3 className="text-sm font-black uppercase tracking-wider text-[#0A2540] dark:text-white">
-                Ward Jurisdictions & Officer Scorecards
-              </h3>
-            </div>
-            <span className="text-[10px] text-slate-500">Select Ward for Profile</span>
+      {/* Live Incident Marquee */}
+      <div className="surface-card p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 shrink-0">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" /> Live Incident Stream:
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            {wardData.map((ward) => (
-              <button
-                key={ward.id}
-                type="button"
-                onClick={() => setSelectedWard(ward)}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  selectedWard.id === ward.id
-                    ? 'border-[#0A2540] bg-blue-50/70 shadow-sm dark:border-blue-400 dark:bg-blue-950/40 ring-1 ring-[#0A2540]'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-xs text-[#0A2540] dark:text-amber-400">{ward.id}</span>
-                  <span className="gov-badge-green font-mono text-[9px]">{ward.slaCompliance} SLA</span>
-                </div>
-
-                <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{ward.name}</h4>
-                <p className="text-[10px] text-slate-500 mt-0.5">{ward.officer}</p>
-
-                <div className="mt-3 flex items-center justify-between text-[10px] border-t border-slate-200/80 pt-2 dark:border-slate-800">
-                  <span className="text-amber-700 font-bold">{ward.pending} Active Queue</span>
-                  <span className="text-emerald-700 font-bold">{ward.completed} Resolved</span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Selected Ward Detail Card */}
-          <div className="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200 dark:bg-slate-950 dark:border-slate-800 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3 dark:border-slate-800">
-              <span className="font-black text-[#0A2540] dark:text-white uppercase">
-                Active Ward Profile: {selectedWard.name}
-              </span>
-              <span className="font-mono text-slate-500">Helpline: {selectedWard.phone}</span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div>
-                <span className="text-[10px] text-slate-500 uppercase block">Assistant Executive Engineer</span>
-                <b className="text-slate-900 dark:text-white">{selectedWard.officer}</b>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 uppercase block">Mean Turnaround (MTTR)</span>
-                <b className="font-mono text-emerald-700 dark:text-emerald-400">{selectedWard.responseTime}</b>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 uppercase block">Citizen Charter Grade</span>
-                <b className="text-blue-700 dark:text-blue-400">Class-A Municipal Division</b>
-              </div>
+          <div className="flex-1 overflow-hidden text-xs text-slate-600 dark:text-slate-300">
+            <div className="animate-ticker flex whitespace-nowrap gap-12 font-medium">
+              <span>🚨 8 mins ago: Pothole reported in West Sector → Routed to Public Works</span>
+              <span>🗑️ 14 mins ago: Waste overflow in Metro Ward → Sanitation crew dispatched</span>
+              <span>💧 19 mins ago: Water leakage in South Avenue → Water Supply engineer allocated</span>
+              <span>💡 24 mins ago: Street light outage in Central Ward → Electricity repair in progress</span>
+              <span>🚨 8 mins ago: Pothole reported in West Sector → Routed to Public Works</span>
             </div>
           </div>
         </div>
-
-        {/* Right: Category Distribution & Trends */}
-        <div className="space-y-6">
-          
-          <div className="gov-panel p-6 border border-slate-300 dark:border-slate-800">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#0A2540] dark:text-white mb-4">
-              Monthly Redressal & Resolution Velocity
-            </h3>
-            <div className="h-56 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={complaintData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" opacity={0.5} />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="complaints" stroke="#0A2540" fill="#0A2540" fillOpacity={0.15} name="Registered" />
-                  <Area type="monotone" dataKey="resolved" stroke="#15803D" fill="#15803D" fillOpacity={0.3} name="Redressed" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Public Grievance Hearings Schedule */}
-          <div className="gov-panel p-5 border-l-4 border-l-amber-500">
-            <div className="flex items-center gap-2 mb-3">
-              <Landmark className="h-4 w-4 text-amber-700" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                Official Municipal Public Hearing Schedule
-              </h3>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              {publicHearings.map((h, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
-                  <div className="flex justify-between font-bold text-slate-900 dark:text-white">
-                    <span>{h.ward}</span>
-                    <span className="font-mono text-amber-700 dark:text-amber-400">{h.date}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-1"><b>Venue:</b> {h.venue}</p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5"><b>Presiding:</b> {h.presiding}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-
       </div>
 
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        {/* Trend Area Chart */}
+        <div className="surface-card p-6 md:p-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
+            <div>
+              <p className="section-kicker">Resolution Velocity</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Incidents vs Redressal Velocity</h2>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Filed</span>
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Resolved</span>
+            </div>
+          </div>
+          <div className="mt-6 h-72 sm:h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={complaintData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="complaintFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="resolveFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    borderRadius: '1rem',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    fontSize: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                  }}
+                />
+                <Area type="monotone" dataKey="complaints" stroke="#0ea5e9" fill="url(#complaintFill)" strokeWidth={2.5} name="Total Filed" />
+                <Area type="monotone" dataKey="resolved" stroke="#10b981" fill="url(#resolveFill)" strokeWidth={2.5} name="Total Resolved" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Categories Bar Chart */}
+        <div className="surface-card p-6 md:p-8">
+          <div className="border-b border-slate-200 pb-4 dark:border-slate-800">
+            <p className="section-kicker">Department Breakdown</p>
+            <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Active Grievance Mix</h2>
+          </div>
+          <div className="mt-6 h-72 sm:h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={categories} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                <XAxis type="number" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis type="category" dataKey="name" stroke="#94a3b8" width={95} fontSize={11} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    borderRadius: '1rem',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="count" fill="#3b82f6" radius={[0, 8, 8, 0]} barSize={16} name="Active Reports" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive GIS Ward Map & Officer SLA Inspector */}
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="surface-card p-6 md:p-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <Map className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <p className="section-kicker">Interactive GIS Grid</p>
+                <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Ward Map & Officer Dispatch</h2>
+              </div>
+            </div>
+            <span className="pill text-[11px]">
+              <Radio className="h-3 w-3 text-emerald-500" /> 4 Wards Synced
+            </span>
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-[0.9fr_1.1fr]">
+            {/* Ward Selector List */}
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Select Ward Area
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
+                {wardData.map((ward) => (
+                  <button
+                    key={ward.id}
+                    onClick={() => setSelectedWard(ward)}
+                    type="button"
+                    className={`rounded-2xl border p-3.5 text-left transition ${
+                      selectedWard.id === ward.id
+                        ? 'border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 ring-2 ring-blue-500/20'
+                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900'
+                    }`}
+                  >
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">{ward.id}</p>
+                    <p className="mt-1 text-xs font-bold text-slate-900 dark:text-white">{ward.name}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Inspector Card */}
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Designated Officer</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedWard.officer}</span>
+                </div>
+                <div className="mt-2 flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Avg Resolution Time</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{selectedWard.responseTime}</span>
+                </div>
+                <div className="mt-2 flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Pending Issues</span>
+                  <span className="font-bold text-amber-600">{selectedWard.pending}</span>
+                </div>
+                <div className="mt-2 flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">In Progress SLA</span>
+                  <span className="font-bold text-sky-600">{selectedWard.progressing}</span>
+                </div>
+                <div className="mt-2 flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Resolved Cases</span>
+                  <span className="font-bold text-emerald-600">{selectedWard.completed}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive SVG GIS Map Visualizer */}
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 p-5 dark:border-slate-800 dark:bg-slate-950">
+              <div className="absolute inset-0 soft-grid opacity-60" />
+              <div className="relative flex items-center justify-between">
+                <span className="rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-300">
+                  OSM GIS Vector Grid
+                </span>
+                <span className="rounded-full bg-blue-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Active: {selectedWard.id}
+                </span>
+              </div>
+
+              <div className="relative mt-4">
+                <svg viewBox="0 0 200 120" className="h-44 w-full select-none">
+                  {[
+                    { id: 'W-01', points: '10,10 95,10 85,55 10,50' },
+                    { id: 'W-02', points: '95,10 190,10 180,50 85,55' },
+                    { id: 'W-03', points: '10,50 85,55 95,110 10,110' },
+                    { id: 'W-04', points: '85,55 180,50 190,110 95,110' },
+                  ].map(({ id, points }) => (
+                    <g
+                      key={id}
+                      onClick={() => setSelectedWard(wardData.find((w) => w.id === id)!)}
+                      className="cursor-pointer group"
+                    >
+                      <polygon
+                        points={points}
+                        className={`transition-all duration-300 ${
+                          selectedWard.id === id
+                            ? 'fill-blue-500/30 stroke-blue-600 stroke-[2.5]'
+                            : 'fill-white/70 stroke-slate-300 stroke-[1.5] hover:fill-blue-100/50 dark:fill-slate-900/60 dark:stroke-slate-700 dark:hover:fill-slate-800'
+                        }`}
+                      />
+                      <text
+                        x={id === 'W-02' || id === 'W-04' ? '124' : '36'}
+                        y={id === 'W-03' || id === 'W-04' ? '84' : '33'}
+                        className="fill-slate-900 font-mono text-[9px] font-bold dark:fill-white"
+                      >
+                        {id}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+
+                {/* Animated Alert Dots */}
+                <span className="absolute left-8 top-6 h-2.5 w-2.5 rounded-full bg-red-500 animate-ping" title="Critical Drainage" />
+                <span className="absolute right-12 top-10 h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" title="Active Road Repair" />
+                <span className="absolute bottom-6 left-16 h-2.5 w-2.5 rounded-full bg-emerald-500" title="Resolved Lighting" />
+              </div>
+
+              <div className="relative mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-red-500" /> Critical</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" /> In Work</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Resolved</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Emergency Services Directory */}
+        <div className="surface-card p-6 md:p-8">
+          <div className="flex items-center gap-2 border-b border-slate-200 pb-4 dark:border-slate-800">
+            <PhoneCall className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div>
+              <p className="section-kicker">Emergency Dispatch</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Municipal Hotlines</h2>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {emergencyContacts.map((contact) => (
+              <div
+                key={contact.code}
+                className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-900/40"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900 dark:text-white">{contact.name}</span>
+                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[9px] font-extrabold uppercase text-blue-600 dark:text-blue-400">
+                      {contact.badge}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">{contact.desc}</p>
+                </div>
+                <a
+                  href={`tel:${contact.code}`}
+                  className="rounded-full bg-white px-3.5 py-1.5 font-mono text-xs font-black text-blue-700 shadow-sm border border-slate-200 hover:bg-blue-50 dark:border-slate-800 dark:bg-slate-950 dark:text-blue-400 transition"
+                >
+                  {contact.code}
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

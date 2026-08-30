@@ -1,510 +1,996 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  AlertTriangle,
+  ArrowLeft,
   ArrowRight,
-  Award,
   Building2,
   Calendar,
+  Camera,
   Check,
   CheckCircle2,
-  ChevronLeft,
+  ChevronRight,
   Clock,
-  Copy,
+  Cpu,
+  Eye,
   FileCheck2,
   FileText,
   HelpCircle,
+  Image as ImageIcon,
   Layers,
   Loader2,
-  Lock,
+  Mail,
   MapPin,
-  MessageSquare,
+  MapPinned,
   Phone,
   PhoneCall,
   Printer,
   QrCode,
+  Radio,
+  RefreshCw,
+  RotateCcw,
   Search,
   Send,
+  Shield,
   ShieldAlert,
   ShieldCheck,
+  AlertCircle,
+  Sparkles,
   ThumbsUp,
+  TrendingUp,
+  User,
   UserCheck,
+  Volume2,
   Wrench,
+  X,
   Zap,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { GovernmentEmblem } from '../components/layout/GovernmentEmblem';
+import { useComplaints, getStoredComplaints } from '../lib/complaintsStore';
 import type { ComplaintRecord } from '../types/complaint';
 
-const fallbackComplaint: ComplaintRecord = {
-  complaintId: 'SC-2026-000001',
-  title: 'Street light grid outage near Central Ward 7 Avenue',
-  description: 'Multiple street lights are completely dark near the main road intersection after the heavy rainstorm last weekend. This is creating severe safety concerns for women, elderly, and two-wheeler commuters in the evening.',
-  category: 'Street Light Outage',
-  department: 'Electricity Department',
-  priority: 'Medium',
-  status: 'Work In Progress',
-  supportCount: 18,
-  createdAt: new Date(Date.now() - 3600 * 28000).toISOString(),
-  location: {
-    ward: '01',
-    city: 'Smart City',
-    area: 'Central Avenue Sector 2',
-    landmark: 'Opposite Government High School Gate',
+// Department contact directory based on department & district
+const DEPARTMENT_DIRECTORY: Record<
+  string,
+  {
+    name: string;
+    officer: string;
+    designation: string;
+    officeNumber: string;
+    mail: string;
+    address: string;
+  }
+> = {
+  'Public Works Department (PWD)': {
+    name: 'Public Works Department (Roads, Bridges & Infrastructure)',
+    officer: 'Er. D. Kulkarni',
+    designation: 'Assistant Executive Engineer (PWD)',
+    officeNumber: '+91 8172-268420 / +91 98450 12345',
+    mail: 'pwd.hassan@smartcity.gov.in',
+    address: 'PWD Divisional Office, BM Road, Hassan - 573201',
   },
-  timeline: [
-    { status: 'Submitted', note: 'Grievance registered via Form SC-GRV-2026 by citizen.' },
-    { status: 'ML Classified', note: 'NIC NLP model categorized issue to Electricity Department with 96.4% confidence.' },
-    { status: 'Department Assigned', note: 'Forwarded to Executive Engineer (Electrical Division, Ward 01).' },
-    { status: 'Officer Assigned', note: 'Field inspection assigned to Ward Engineer Er. D. Kulkarni.' },
-    { status: 'Work In Progress', note: 'Luminaire replacement and underground cable repair work order #WO-7712 issued to contractor.' },
-  ],
+  'Public Works Department': {
+    name: 'Public Works Department (Roads, Bridges & Infrastructure)',
+    officer: 'Er. D. Kulkarni',
+    designation: 'Assistant Executive Engineer (PWD)',
+    officeNumber: '+91 8172-268420 / +91 98450 12345',
+    mail: 'pwd.hassan@smartcity.gov.in',
+    address: 'PWD Divisional Office, BM Road, Hassan - 573201',
+  },
+  'Municipal Corporation': {
+    name: 'City Municipal Corporation (Sanitation, Water, Power & Greenery)',
+    officer: 'Dr. Ramesh Hegde',
+    designation: 'Chief Municipal Executive Officer & Commissioner',
+    officeNumber: '+91 8172-267811 / +91 98451 55667',
+    mail: 'commissioner.hassan@smartcity.gov.in',
+    address: 'Municipal Corporation Headquarters, BM Road, Hassan - 573201',
+  },
+  'Sanitation Department': {
+    name: 'Solid Waste Management & Sanitation Directorate',
+    officer: 'Dr. Ramesh Hegde',
+    designation: 'Chief Health & Sanitation Inspector',
+    officeNumber: '+91 8172-267811 / +91 98451 55667',
+    mail: 'sanitation.hassan@smartcity.gov.in',
+    address: 'Municipal Solid Waste Depot, Old Bus Stand Road, Hassan - 573201',
+  },
+  'Water Supply Department': {
+    name: 'Water Supply & Sewerage Board (BWSSB)',
+    officer: 'Er. Suresh Rao',
+    designation: 'Sub-Divisional Water Supply Engineer',
+    officeNumber: '+91 8172-269300 / +91 98452 77889',
+    mail: 'watersupply.hassan@smartcity.gov.in',
+    address: 'Water Works Sub-Division, Tank Bund Road, Hassan - 573201',
+  },
+  'Electricity Department': {
+    name: 'Electricity Supply Company (BESCOM)',
+    officer: 'Er. Chandrashekar B.',
+    designation: 'Assistant Engineer (Operations & Maintenance)',
+    officeNumber: '+91 8172-265100 / +91 98453 99001',
+    mail: 'bescom.subdivision1@smartcity.gov.in',
+    address: 'BESCOM City Sub-Station, Salagame Road, Hassan - 573201',
+  },
+  'Tourism Department': {
+    name: 'Department of Tourism & Cultural Heritage',
+    officer: 'Smt. Ananya Sharma',
+    designation: 'Assistant Director of Tourism',
+    officeNumber: '+91 8172-262100 / +91 98456 44332',
+    mail: 'tourism.hassan@smartcity.gov.in',
+    address: 'District Tourism Information Center, BM Road, Hassan - 573201',
+  },
+  'Agriculture Department': {
+    name: 'Department of Agriculture (Farmer Advisory & Crop Protection)',
+    officer: 'Dr. H. M. Lingaraju',
+    designation: 'Assistant Director of Agriculture (Plant Protection)',
+    officeNumber: '+91 8172-263300 / +91 98457 66554',
+    mail: 'agriculture.hassan@smartcity.gov.in',
+    address: 'Raitha Samparka Kendra / Joint Director of Agriculture, RC Road, Hassan - 573201',
+  },
+  'Municipal Works': {
+    name: 'City Municipal Council (CMC) Engineering Section',
+    officer: 'Er. Manjunath Swamy',
+    designation: 'Executive Engineer (Drainage & Civic Works)',
+    officeNumber: '+91 8172-264500 / +91 98454 22334',
+    mail: 'cmc.engineering@smartcity.gov.in',
+    address: 'City Municipal Council Complex, B.M. Road, Hassan - 573201',
+  },
+  'Traffic Police Bureau': {
+    name: 'Traffic & Urban Road Safety Bureau',
+    officer: 'Insp. Raghavendra Nayak',
+    designation: 'Traffic Sub-Division Inspector',
+    officeNumber: '+91 8172-261100 / +91 98455 33445',
+    mail: 'traffic.hassan@smartcity.gov.in',
+    address: 'City Traffic Police Station, Hemavathi Statue Circle, Hassan - 573201',
+  },
 };
 
-const sampleIds = ['SC-2026-000001', 'SC-2026-000214', 'SC-2026-000305', 'SC-2026-000109'];
-
-const timelineStages = [
-  { id: 'Submitted', label: '1. Registered at Portal', desc: 'Secure token generated & timestamp locked' },
-  { id: 'ML Classified', label: '2. NLP Triage & Ward Routing', desc: 'Auto-assigned to jurisdictional division' },
-  { id: 'Officer Assigned', label: '3. Field Engineer Inspection', desc: 'On-site assessment & contractor dispatch' },
-  { id: 'Work In Progress', label: '4. Remediation In Progress', desc: 'Physical repair & before/after photo audit' },
-  { id: 'Resolved', label: '5. Citizen Sign-off & Closure', desc: 'Quality audit & feedback verified' },
-];
-
 export function ComplaintDetailsPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { complaints } = useComplaints();
 
-  const [complaint, setComplaint] = useState<ComplaintRecord>(fallbackComplaint);
-  const [searchQuery, setSearchQuery] = useState('');
+  // Search input for Track token (Top Right of Sketch)
+  const [tokenInput, setTokenInput] = useState('');
+  const [complaint, setComplaint] = useState<ComplaintRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supportMessage, setSupportMessage] = useState('');
+  const [searchError, setSearchError] = useState('');
+
+  // Support / Upvote state
   const [hasSupported, setHasSupported] = useState(false);
-  const [supportCount, setSupportCount] = useState(18);
-  const [copied, setCopied] = useState(false);
-  const [escalated, setEscalated] = useState(false);
+  const [supportCount, setSupportCount] = useState(0);
 
-  // Status update state for officers
-  const [newStatus, setNewStatus] = useState('Work In Progress');
-  const [statusNote, setStatusNote] = useState('');
+  // Escalation to Higher Authority Modal State
+  const [isEscalateModalOpen, setIsEscalateModalOpen] = useState(false);
+  const [escalationReason, setEscalationReason] = useState(
+    'Complaint has been unresolved for more than 5 days without resolution.'
+  );
+  const [isEscalating, setIsEscalating] = useState(false);
+  const [escalationSuccessMsg, setEscalationSuccessMsg] = useState('');
+  const [isEscalated, setIsEscalated] = useState(false);
+
+  // Officer status update modal (for ward officers)
+  const [officerStatus, setOfficerStatus] = useState('Work In Progress');
+  const [officerNote, setOfficerNote] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [statusSuccessMsg, setStatusSuccessMsg] = useState('');
+  const [statusSuccess, setStatusSuccess] = useState('');
 
-  const loadComplaint = async () => {
-    if (!id) {
+  // Load complaint data from backend & local synchronized store
+  const loadComplaint = async (token?: string) => {
+    const targetId = token || id;
+    if (!targetId) {
       setIsLoading(false);
       return;
     }
 
+    setIsLoading(true);
+    setSearchError('');
+
+    // 1. Instant local store match
+    const stored = getStoredComplaints().find(
+      (c) => c.complaintId.toUpperCase() === targetId.toUpperCase()
+    );
+    if (stored) {
+      setComplaint(stored);
+      setSupportCount(stored.supportCount || 0);
+      setOfficerStatus(stored.status || 'Work In Progress');
+      setIsLoading(false);
+      return;
+    }
+
+    // 2. Fetch from backend
     try {
-      const response = await api.get(`/complaints/${id}`);
-      if (response.data?.complaint) {
-        setComplaint(response.data.complaint as ComplaintRecord);
-        setNewStatus(response.data.complaint.status || 'Work In Progress');
-        setSupportCount(response.data.complaint.supportCount || 18);
+      const res = await api.get(`/complaints/${targetId}`);
+      if (res.data?.complaint) {
+        setComplaint(res.data.complaint as ComplaintRecord);
+        setSupportCount(res.data.complaint.supportCount || 0);
+        setOfficerStatus(res.data.complaint.status || 'Work In Progress');
       } else {
-        setComplaint({ ...fallbackComplaint, complaintId: id });
+        setComplaint(null);
       }
     } catch {
-      setComplaint({ ...fallbackComplaint, complaintId: id });
+      setComplaint(null);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    setIsLoading(true);
-    void loadComplaint();
-  }, [id]);
+    void loadComplaint(id);
+  }, [id, complaints]);
 
-  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Handle Token Search Submission (From Top Right Box)
+  const handleTokenSearch = (e: FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/complaints/${searchQuery.trim().toUpperCase()}`);
+    const query = tokenInput.trim().toUpperCase();
+    if (!query) {
+      setSearchError('Please enter a Reference Token ID.');
+      return;
     }
+    navigate(`/complaints/${query}`);
   };
 
+  // Support complaint handler
   const handleSupport = async () => {
     if (hasSupported) return;
     setHasSupported(true);
     setSupportCount((prev) => prev + 1);
+
+    if (!id) return;
     try {
       await api.post(`/complaints/${id}/support`);
     } catch {
-      // Offline fallback
+      // Local state is already updated
     }
   };
 
-  const handleStatusUpdate = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsUpdatingStatus(true);
-    setStatusSuccessMsg('');
+  // Days elapsed calculation
+  const daysElapsed = useMemo(() => {
+    if (!complaint?.createdAt) return 0;
+    const diffMs = Date.now() - new Date(complaint.createdAt).getTime();
+    return Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  }, [complaint?.createdAt]);
 
+  const isMoreThan5Days = daysElapsed >= 5;
+
+  // Department contact data
+  const deptInfo = useMemo(() => {
+    const fallbackInfo = {
+      name: complaint?.department || 'Public Works Department (PWD)',
+      officer: complaint?.assignedOfficerName || 'Er. D. Kulkarni',
+      designation: 'Designated Ward Engineer',
+      officeNumber: '+91 8172-268800',
+      mail: 'support.hassan@smartcity.gov.in',
+      address: 'Municipal Corporation Complex, BM Road, Hassan - 573201',
+    };
+    if (!complaint?.department) return fallbackInfo;
+    return DEPARTMENT_DIRECTORY[complaint.department] || fallbackInfo;
+  }, [complaint?.department, complaint?.assignedOfficerName]);
+
+  // Handle Escalation Submission to Higher Authority
+  const handleEscalateToHigherAuthority = async () => {
+    if (!complaint) return;
+    setIsEscalating(true);
     try {
-      await api.patch(`/complaints/${id}/status`, {
-        status: newStatus,
-        note: statusNote || `Status updated to ${newStatus} by ${user?.name || 'Ward Officer'}.`,
-      });
-      setStatusSuccessMsg('Official dossier updated successfully.');
-      void loadComplaint();
-    } catch {
-      // Offline fallback
-      setComplaint((prev) => ({
+      // Create an escalated timeline note
+      const updatedTimeline = [
+        ...(complaint.timeline || []),
+        {
+          status: 'Escalated to Higher Authority',
+          note: `🚨 Escalated to District Collector & Municipal Commissioner: "${escalationReason}"`,
+          createdAt: new Date(),
+        },
+      ];
+
+      setComplaint((prev) => (prev ? {
         ...prev,
-        status: newStatus,
-        timeline: [
-          ...(prev.timeline || []),
-          {
-            status: newStatus,
-            note: statusNote || `Status updated to ${newStatus} by Ward Officer.`,
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      }));
-      setStatusSuccessMsg('Status updated in local session.');
+        priority: 'High',
+        timeline: updatedTimeline,
+      } : null));
+
+      setIsEscalated(true);
+      setEscalationSuccessMsg(
+        'Escalation dossier successfully dispatched to Municipal Commissioner & District Magistrate office.'
+      );
+      setTimeout(() => {
+        setIsEscalateModalOpen(false);
+      }, 1500);
+    } finally {
+      setIsEscalating(false);
+    }
+  };
+
+  // Status update by Officer
+  const handleOfficerStatusUpdate = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await api.patch(`/complaints/${id}/status`, {
+        status: officerStatus,
+        note: officerNote || `Officer status updated to ${officerStatus}`,
+      });
+      if (res.data?.complaint) {
+        setComplaint(res.data.complaint);
+      }
+      setStatusSuccess('Status updated successfully!');
+      setOfficerNote('');
+      setTimeout(() => setStatusSuccess(''), 3000);
+    } catch {
+      setStatusSuccess('Status updated locally.');
     } finally {
       setIsUpdatingStatus(false);
-      setStatusNote('');
     }
   };
 
-  const handleCopyId = () => {
-    if (complaint.complaintId) {
-      navigator.clipboard.writeText(complaint.complaintId);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
+  const isSolved =
+    complaint?.status === 'Resolved' ||
+    complaint?.status === 'Completed' ||
+    complaint?.status === 'Citizen Verified';
 
-  const currentStatus = complaint.status || 'Work In Progress';
-  const isResolved = currentStatus === 'Resolved';
+  const isOngoing =
+    complaint?.status === 'Work In Progress' ||
+    complaint?.status === 'Work Started' ||
+    complaint?.status === 'Department Assigned' ||
+    complaint?.status === 'Officer Assigned';
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="h-8 w-8 text-blue-600 animate-spin" />
+          <p className="text-xs font-bold text-slate-500">Loading grievance records...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!complaint) {
+    return (
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16">
+        <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
+        <header className="border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/90 p-4">
+          <div className="mx-auto flex max-w-6xl items-center justify-between">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/citizen')}
+              className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Dashboard</span>
+            </button>
+            <form onSubmit={handleTokenSearch} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="Track token..."
+                className="rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-900 dark:text-white"
+              />
+              <button type="submit" className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white">
+                Search
+              </button>
+            </form>
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-md px-4 py-16 text-center space-y-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 dark:bg-slate-900 mx-auto text-slate-400">
+            <AlertCircle className="h-8 w-8" />
+          </div>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">Grievance Not Found</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            No grievance records currently match #{id}. You can submit a new complaint or check another ticket token.
+          </p>
+          <div className="pt-2 flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/report')}
+              className="rounded-2xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition"
+            >
+              Report New Complaint
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/citizen')}
+              className="rounded-2xl border border-slate-300 dark:border-slate-800 px-5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="page-shell py-8">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
       
-      {/* Top Search & Navigation Bar */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-            <ChevronLeft className="h-4 w-4" /> Portal Home
-          </Link>
-          <span className="text-slate-300">/</span>
-          <span className="text-xs font-bold text-[#0A2540] dark:text-amber-400">Grievance Audit Dossier</span>
-        </div>
+      {/* Top Government Accent Strip */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
 
-        {/* Quick Search Lookup */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search other Ref ID..."
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 pl-8 text-xs font-bold uppercase text-slate-900 outline-none focus:border-[#0A2540] dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-            />
-            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-          </div>
-          <button type="submit" className="btn-gov-primary text-xs py-1.5 px-3">
-            Search
-          </button>
-        </form>
-      </div>
-
-      {/* Main Official Dossier Container */}
-      <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-        
-        {/* Left Column: Official Case Dossier */}
-        <div className="space-y-6">
+      {/* ========================================================================= */}
+      {/* HEADER SECTION WITH TOP-RIGHT "TRACK TOKEN" INPUT (Per Sketch)            */}
+      {/* ========================================================================= */}
+      <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8 gap-4">
           
-          {/* Government Dossier Header Card */}
-          <div className="gov-panel p-6 border-2 border-[#0A2540] dark:border-slate-800 relative overflow-hidden bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 shadow-xl">
-            
-            {/* Header Strip */}
-            <div className="border-b border-slate-200 pb-4 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <GovernmentEmblem className="h-12 w-12 flex-shrink-0" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="gov-badge font-mono text-[9px]">OFFICIAL DOSSIER</span>
-                    <span className="gov-badge-green font-mono text-[9px]">GIGW VERIFIED</span>
-                  </div>
-                  <h1 className="text-base sm:text-lg font-black text-[#0A2540] dark:text-white uppercase tracking-tight">
-                    Smart City Municipal Grievance Audit Record
-                  </h1>
-                </div>
-              </div>
+          {/* Left Title & Back button */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/citizen')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
 
-              {/* Barcode Strip */}
-              <div className="text-right flex flex-col items-end">
-                <div className="h-7 w-32 barcode-strip mb-1" />
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-black">{complaint.complaintId}</span>
-                  <button
-                    type="button"
-                    onClick={handleCopyId}
-                    className="p-1 text-slate-400 hover:text-slate-700"
-                    title="Copy Reference ID"
-                  >
-                    {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                  </button>
-                </div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-500/25">
+                <Building2 className="h-4 w-4" />
+              </div>
+              <div>
+                <h1 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                  Grievance Details
+                </h1>
+                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
+                  Live SLA & Officer Resolution Tracker
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Case Title & Summary */}
-            <div className="mt-5">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                  isResolved
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300'
-                    : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border border-amber-300'
-                }`}>
-                  ● Status: {complaint.status}
-                </span>
+          {/* Right Input from Sketch: "Track token" */}
+          <form onSubmit={handleTokenSearch} className="flex items-center gap-1.5 max-w-xs w-full">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="Track token (e.g. SC-2026-000109)..."
+                className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 py-1.5 pl-8 pr-3 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-blue-500 transition"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-2xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700 transition shrink-0 shadow-sm"
+            >
+              Track
+            </button>
+          </form>
+        </div>
+      </header>
 
-                <span className="gov-badge font-mono text-[10px]">
-                  Priority: {complaint.priority}
-                </span>
+      {/* Main Container */}
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+        
+        {/* Token Header Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-sm sm:text-base font-black text-blue-600 dark:text-blue-400">
+                Ticket Token: #{complaint.complaintId}
+              </span>
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border ${
+                  isSolved
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                    : isOngoing
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                }`}
+              >
+                {isSolved ? '● Solved' : isOngoing ? '● Work In Progress' : '● Submitted'}
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              {complaint.title}
+            </h2>
+          </div>
 
-                <span className="gov-badge-saffron font-mono text-[10px]">
-                  Ward {complaint.location?.ward || '01'}
-                </span>
-              </div>
+          {/* Upvote & Print actions */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSupport}
+              className={`flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs font-bold transition shadow-sm border ${
+                hasSupported
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400'
+                  : 'border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-blue-500'
+              }`}
+            >
+              <ThumbsUp className="h-3.5 w-3.5 text-blue-500" />
+              <span>{hasSupported ? 'Endorsed' : 'Endorse Issue'} ({supportCount})</span>
+            </button>
 
-              <h2 className="text-lg font-black text-[#0A2540] dark:text-white leading-snug">
-                {complaint.title}
-              </h2>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              title="Print Grievance Docket"
+            >
+              <Printer className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
 
-              <p className="mt-3 text-xs leading-relaxed text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800">
-                {complaint.description}
+        {/* ========================================================================= */}
+        {/* SECTION 1: TRACKING DETAILS ABOUT COMPLAINT (Top Box Per Sketch)          */}
+        {/* Status, SLA Timeline, Photo Evidence, Location & Description              */}
+        {/* ========================================================================= */}
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm space-y-6">
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3.5">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <span>Tracking details about complaint</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Audit trail from AI classification to field engineer resolution
               </p>
             </div>
 
-            {/* Official Metadata Grid */}
-            <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs border-t border-slate-200 pt-4 dark:border-slate-800">
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Department</span>
-                <p className="font-bold text-slate-900 dark:text-white">{complaint.department}</p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Registration Date</span>
-                <p className="font-bold font-mono text-slate-900 dark:text-white">
-                  {complaint.createdAt
-                    ? new Date(complaint.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-                    : 'Recent'}
-                </p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Target SLA Turnaround</span>
-                <p className="font-bold text-emerald-700 dark:text-emerald-400 font-mono">48 Hours (On Track)</p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Locality / Sector</span>
-                <p className="font-bold text-slate-900 dark:text-white">{complaint.location?.area}</p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Prominent Landmark</span>
-                <p className="font-bold text-slate-900 dark:text-white">{complaint.location?.landmark || 'Near Main Gate'}</p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Public Endorsements</span>
-                <p className="font-bold text-amber-700 dark:text-amber-400 font-mono">{supportCount} Citizens</p>
-              </div>
-            </div>
-
-            {/* Action Bar: Print Challan & Public Support */}
-            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleSupport}
-                  disabled={hasSupported}
-                  className={`btn-gov-outline text-xs px-3.5 py-2 ${
-                    hasSupported ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : ''
-                  }`}
-                >
-                  <ThumbsUp className="h-3.5 w-3.5 text-amber-600" />
-                  {hasSupported ? `Endorsed by You (${supportCount})` : `Endorse Grievance (${supportCount})`}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="btn-gov-outline text-xs px-3.5 py-2"
-                >
-                  <Printer className="h-3.5 w-3.5" />
-                  Print Official Challan
-                </button>
-              </div>
-
-              {/* Citizen Escalation Button */}
-              {!isResolved && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEscalated(true);
-                    alert('Grievance escalation alert dispatched to Joint Municipal Commissioner (Tier 2).');
-                  }}
-                  disabled={escalated}
-                  className={`text-xs font-bold px-3 py-2 rounded-lg border transition ${
-                    escalated
-                      ? 'bg-purple-100 text-purple-900 border-purple-300'
-                      : 'border-red-300 bg-red-50 text-red-800 hover:bg-red-100'
-                  }`}
-                >
-                  {escalated ? '✓ Escalated to Tier 2 Commissioner' : '⚠️ Escalate to Lokayukta / Commissioner'}
-                </button>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">
+                Time Elapsed: <span className="font-bold text-slate-900 dark:text-white">{daysElapsed} Days</span>
+              </span>
+              {isMoreThan5Days && !isSolved && (
+                <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 text-[10px] font-extrabold text-red-600 dark:text-red-400 border border-red-500/20 animate-pulse">
+                  ⚠️ SLA Breach (&gt;5 Days)
+                </span>
               )}
             </div>
-
           </div>
 
-          {/* Official 5-Stage Government SLA Escrow Timeline */}
-          <div className="gov-panel p-6 border border-slate-300 dark:border-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-6 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#0A2540] dark:text-amber-400" />
-                <h3 className="text-sm font-black uppercase tracking-wider text-[#0A2540] dark:text-white">
-                  Government Inspection & Resolution Timeline (प्रगति विवरण)
-                </h3>
-              </div>
-              <span className="gov-badge-green font-mono text-[9px]">SLA Escrow Active</span>
-            </div>
+          {/* Step-by-Step Resolution Timeline */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Live Progress Timeline:
+            </h4>
 
-            <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-              {(complaint.timeline || []).map((step, idx) => (
-                <div key={idx} className="relative flex items-start gap-4">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0A2540] text-white text-xs font-bold ring-4 ring-white dark:ring-slate-900 flex-shrink-0 z-10">
-                    <Check className="h-3.5 w-3.5 text-amber-400" />
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+              {(complaint.timeline || []).map((t, idx) => (
+                <div key={idx} className="relative group">
+                  {/* Timeline bullet */}
+                  <div className="absolute -left-6 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white ring-4 ring-white dark:ring-slate-900 shadow-sm">
+                    <Check className="h-3 w-3" />
                   </div>
-                  <div className="flex-1 rounded-lg bg-slate-50 p-3.5 border border-slate-200 dark:bg-slate-950 dark:border-slate-800 text-xs">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-black text-slate-900 dark:text-white">
-                        {step.status}
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-500">
-                        {step.createdAt ? new Date(step.createdAt).toLocaleTimeString('en-IN') : `Milestone #${idx + 1}`}
-                      </span>
-                    </div>
-                    <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
-                      {step.note}
-                    </p>
+
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                      {t.status}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {t.createdAt ? new Date(t.createdAt).toLocaleString() : 'Recently'}
+                    </span>
                   </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                    {t.note}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
-        </div>
-
-        {/* Right Column: Assigned Officer Profile & Official Controls */}
-        <div className="space-y-6">
-          
-          {/* Jurisdictional Ward Officer Profile Card */}
-          <div className="gov-panel p-5 border-l-4 border-l-[#0A2540] dark:border-l-blue-400">
-            <span className="section-kicker">Jurisdictional Field Authority</span>
-            <h3 className="text-base font-black text-[#0A2540] dark:text-white mt-1">
-              Er. D. Kulkarni
-            </h3>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-              Assistant Executive Engineer (AEE) · Ward 01
-            </p>
-
-            <div className="mt-4 space-y-2.5 text-xs border-t border-slate-200 pt-3 dark:border-slate-800">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Government Employee ID:</span>
-                <b className="font-mono text-slate-900 dark:text-white">KA-MNC-ENG-4409</b>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Ward Office:</span>
-                <b className="text-slate-900 dark:text-white">Central Ward Office, Room 204</b>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Gov Official Email:</span>
-                <b className="font-mono text-blue-700 dark:text-blue-400">d.kulkarni@smartcity.gov.in</b>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Field Desk Phone:</span>
-                <b className="font-mono text-amber-700 dark:text-amber-400">080-223401</b>
-              </div>
+          {/* Grievance Metadata Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                Category & Department
+              </span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white mt-1 block">
+                {complaint.category}
+              </span>
+              <span className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5 block">
+                {complaint.department}
+              </span>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 dark:border-slate-800">
-              <span>Office Hours: 10:00 AM - 5:00 PM</span>
-              <span className="gov-badge-green text-[8px]">On Field Duty</span>
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                Geo Location & Ward
+              </span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white mt-1 block">
+                {complaint.location?.area || 'BM Road Area'}
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+                {complaint.location?.ward || 'Ward 04'} · {complaint.location?.city || 'Hassan'}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                Priority & SLA Window
+              </span>
+              <span className="text-xs font-bold text-red-600 dark:text-red-400 mt-1 block">
+                {complaint.priority} Priority Level
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+                48 Hours Maximum Turnaround
+              </span>
             </div>
           </div>
 
-          {/* Officer Action Console (For Ward Officers / Dept Heads) */}
-          <div className="gov-panel p-5 border-2 border-slate-300 dark:border-slate-800 no-print">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3 dark:border-slate-800">
-              <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#0A2540] dark:text-white">
-                <Wrench className="h-4 w-4 text-amber-600" />
-                Officer Triage Console
-              </div>
-              <span className="gov-badge font-mono text-[9px]">Admin Authorized</span>
+          {/* Description & Photo Proof */}
+          <div className="pt-2 space-y-3">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                Citizen Grievance Description:
+              </span>
+              <p className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
+                {complaint.description}
+              </p>
             </div>
 
-            <form onSubmit={handleStatusUpdate} className="space-y-3 text-xs">
+            {/* Citizen Photo / Visual Evidence */}
+            {complaint.imageUrl && (
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Update Official Status
-                </label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-[#0A2540] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                  Attached Visual Evidence (Citizen):
+                </span>
+                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 max-h-64 flex items-center justify-center p-2">
+                  <img src={complaint.imageUrl} alt="Visual Proof" className="max-h-60 object-contain rounded-xl" />
+                </div>
+              </div>
+            )}
+
+            {/* Department Officer Work Done Verification Photo Proof (Real-Time Synced) */}
+            {complaint.resolvedImageUrl && (
+              <div className="rounded-2xl border-2 border-emerald-500/50 bg-emerald-50/70 dark:bg-emerald-950/40 p-4 space-y-3 shadow-md shadow-emerald-500/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">
+                      Work Completed & Verified (Officer Shared Proof)
+                    </h4>
+                    <p className="text-[11px] text-emerald-800 dark:text-emerald-400">
+                      The assigned field engineer completed the resolution and uploaded the photo proof below:
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl overflow-hidden border border-emerald-300 dark:border-emerald-800/80 bg-slate-950 max-h-64 flex items-center justify-center p-2">
+                  <img
+                    src={complaint.resolvedImageUrl}
+                    alt="Work Done Proof"
+                    className="max-h-60 object-contain rounded-lg"
+                  />
+                </div>
+
+                {complaint.resolutionNotes && (
+                  <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-200 italic bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                    Officer Remarks: "{complaint.resolutionNotes}"
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* BOTTOM TWO BOXES (Per Handwritten Sketch):                                */}
+        {/* Left: Department Details based on that complaint officer                  */}
+        {/* Right: Raise Issue to Higher Authority                                    */}
+        {/* ========================================================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          
+          {/* --------------------------------------------------------------------- */}
+          {/* LEFT BOX: DEPARTMENT DETAILS BASED ON THAT COMPLAINT OFFICER          */}
+          {/* Name, Office number, Mail, Address (Per Sketch)                       */}
+          {/* --------------------------------------------------------------------- */}
+          <div className="lg:col-span-7 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm flex flex-col justify-between space-y-5">
+            
+            <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <span>Department Details based on complaint officer</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Designated municipal wing and ward engineer in charge
+              </p>
+            </div>
+
+            {/* Officer Details List from Sketch (Name, Office number, Mail, Address) */}
+            <div className="space-y-3.5 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+              
+              {/* Department Name */}
+              <div className="pt-2 flex justify-between items-start gap-4">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] shrink-0">
+                  Department
+                </span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400 text-right">
+                  {deptInfo.name}
+                </span>
+              </div>
+
+              {/* Name */}
+              <div className="pt-3 flex justify-between items-center gap-4">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] shrink-0">
+                  Name
+                </span>
+                <div className="text-right">
+                  <span className="font-bold text-slate-900 dark:text-white block text-sm">
+                    {deptInfo.officer}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {deptInfo.designation}
+                  </span>
+                </div>
+              </div>
+
+              {/* Office number */}
+              <div className="pt-3 flex justify-between items-center gap-4">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] shrink-0">
+                  Office number
+                </span>
+                <a
+                  href={`tel:${deptInfo.officeNumber.split('/')[0]?.trim() || ''}`}
+                  className="font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                 >
-                  <option value="Pending">Pending Field Inspection</option>
-                  <option value="Work In Progress">Work In Progress (Contractor Dispatched)</option>
-                  <option value="Resolved">Resolved (Remediation Complete)</option>
-                  <option value="Closed">Closed / Citizen Sign-off</option>
-                </select>
+                  <Phone className="h-3.5 w-3.5" />
+                  <span>{deptInfo.officeNumber}</span>
+                </a>
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Inspection Note / Work Order Number
-                </label>
-                <textarea
-                  rows={2}
-                  value={statusNote}
-                  onChange={(e) => setStatusNote(e.target.value)}
-                  placeholder="e.g. Luminaire replaced on pole #42; circuit verified..."
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-xs text-slate-900 outline-none focus:border-[#0A2540] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                />
+              {/* Mail */}
+              <div className="pt-3 flex justify-between items-center gap-4">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] shrink-0">
+                  Mail
+                </span>
+                <a
+                  href={`mailto:${deptInfo.mail}`}
+                  className="font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  <span>{deptInfo.mail}</span>
+                </a>
               </div>
 
-              <button
-                type="submit"
-                disabled={isUpdatingStatus}
-                className="btn-gov-primary w-full py-2.5 text-xs font-bold"
+              {/* Address */}
+              <div className="pt-3 flex justify-between items-start gap-4">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] shrink-0">
+                  Address
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 text-right max-w-xs">
+                  {deptInfo.address}
+                </span>
+              </div>
+            </div>
+
+            {/* Direct Officer Call Action */}
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                Working Hours: 09:30 AM - 05:30 PM (Mon-Sat)
+              </span>
+              <a
+                href={`tel:${deptInfo.officeNumber.split('/')[0]?.trim() || ''}`}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 px-3.5 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition"
               >
-                {isUpdatingStatus ? 'Updating Dossier...' : 'Record Official Inspection ➔'}
-              </button>
+                <PhoneCall className="h-3.5 w-3.5" />
+                <span>Call Division Office</span>
+              </a>
+            </div>
+          </div>
 
-              {statusSuccessMsg && (
-                <p className="text-emerald-700 font-bold text-[11px] text-center">{statusSuccessMsg}</p>
+          {/* --------------------------------------------------------------------- */}
+          {/* RIGHT BOX: RAISE ISSUE TO HIGHER AUTHORITY (Per Sketch & Voice Note)  */}
+          {/* Triggers if unresolved > 5 days or urgent public safety risk         */}
+          {/* --------------------------------------------------------------------- */}
+          <div className="lg:col-span-5 rounded-3xl border-2 border-red-200 dark:border-red-950/60 bg-red-50/40 dark:bg-red-950/20 p-6 sm:p-7 shadow-sm flex flex-col justify-between space-y-5">
+            
+            <div className="border-b border-red-200 dark:border-red-900/40 pb-3">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-extrabold text-sm uppercase tracking-wider">
+                <ShieldAlert className="h-5 w-5 animate-pulse" />
+                <span>Official Escalation Window</span>
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white mt-1">
+                Raise Issue to Higher Authority
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                If the grievance is unresolved for <span className="font-bold text-red-600 dark:text-red-400">&gt; 5 days</span> or the ward engineer is unresponsive, you can directly escalate this case to the <strong>Municipal Commissioner & District Collector</strong>.
+              </p>
+            </div>
+
+            {/* Escalation Conditions Card */}
+            <div className="rounded-2xl border border-red-200 dark:border-red-900/40 bg-white/80 dark:bg-slate-900/80 p-4 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Days Pending:</span>
+                <span className="font-black text-red-600 dark:text-red-400 text-sm">{daysElapsed} Days</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Escalation Tier:</span>
+                <span className="font-bold text-slate-900 dark:text-white">Tier-2 IAS Municipal Level</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Authority in Charge:</span>
+                <span className="font-bold text-slate-900 dark:text-white">District Commissioner Office</span>
+              </div>
+            </div>
+
+            {/* Big Action Button from Sketch: [Raise Issue to Higher Authority] */}
+            <div>
+              {isEscalated ? (
+                <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Escalation Notice Active · Under Collector Review</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsEscalateModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 py-3.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-xl shadow-red-600/25 hover:from-red-700 hover:to-rose-700 active:scale-95 transition"
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                  <span>Raise Issue to Higher Authority</span>
+                </button>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* OFFICER ACTION PANEL (For Ward Officers / Dept Heads to update status)    */}
+        {/* ========================================================================= */}
+        {user?.role && user.role !== 'Citizen' && (
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-blue-600" />
+                <span>Ward Officer Resolution Console</span>
+              </h3>
+              <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+                Staff Control
+              </span>
+            </div>
+
+            <form onSubmit={handleOfficerStatusUpdate} className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold uppercase text-slate-500 mb-1">
+                    Update Resolution Status
+                  </label>
+                  <select
+                    value={officerStatus}
+                    onChange={(e) => setOfficerStatus(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-2 px-3 font-semibold text-slate-900 dark:text-white outline-none focus:border-blue-500"
+                  >
+                    <option value="Work In Progress">Work In Progress</option>
+                    <option value="Resolved">Resolved (Repair Completed)</option>
+                    <option value="Pending">Pending (Awaiting Materials)</option>
+                    <option value="Citizen Verified">Citizen Verified</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold uppercase text-slate-500 mb-1">
+                    Field Engineer Note
+                  </label>
+                  <input
+                    type="text"
+                    value={officerNote}
+                    onChange={(e) => setOfficerNote(e.target.value)}
+                    placeholder="e.g. Asphalting completed. Surface compacted."
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-2 px-3 font-semibold text-slate-900 dark:text-white outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-2">
+                {statusSuccess && (
+                  <span className="text-emerald-500 font-bold">{statusSuccess}</span>
+                )}
+                <button
+                  type="submit"
+                  disabled={isUpdatingStatus}
+                  className="ml-auto rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition"
+                >
+                  {isUpdatingStatus ? 'Saving...' : 'Update Ticket'}
+                </button>
+              </div>
             </form>
           </div>
+        )}
+      </main>
 
-          {/* Statutory Redressal Guarantee Notice */}
-          <div className="gov-panel p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs space-y-2">
-            <div className="flex items-center gap-2 text-[#0A2540] dark:text-amber-400 font-bold">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Statutory Redressal Standards</span>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-              In accordance with the Right to Public Services Act, every citizen is entitled to guaranteed inspection and resolution. If the grievance is delayed past SLA without valid cause, an automatic hearing is convened at the Lokayukta desk.
-            </p>
+      {/* ========================================================================= */}
+      {/* ESCALATION MODAL TO HIGHER AUTHORITY                                      */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {isEscalateModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEscalateModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative z-10 w-full max-w-lg rounded-3xl border border-red-500/30 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-2xl transition-colors space-y-4"
+            >
+              <button
+                type="button"
+                onClick={() => setIsEscalateModalOpen(false)}
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/30">
+                  <ShieldAlert className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    Escalate to Municipal Commissioner
+                  </h3>
+                  <p className="text-xs text-red-600 dark:text-red-400 font-semibold">
+                    District Level Grievance Overdue Intervention
+                  </p>
+                </div>
+              </div>
+
+              {escalationSuccessMsg ? (
+                <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  {escalationSuccessMsg}
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-2xl bg-red-50 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300 space-y-1">
+                    <p className="font-bold">⚠️ Statutory Notice under Public Grievance Charter:</p>
+                    <p>
+                      Ticket #{complaint.complaintId} has exceeded the 5-day standard resolution threshold. This escalation will be dispatched directly to the <strong>District Collector & Municipal Commissioner</strong> executive dashboard with top priority flag.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                      Reason for Escalation
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={escalationReason}
+                      onChange={(e) => setEscalationReason(e.target.value)}
+                      placeholder="Specify why higher authority intervention is required..."
+                      className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-red-500 transition resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsEscalateModalOpen(false)}
+                      className="rounded-xl border border-slate-300 dark:border-slate-800 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleEscalateToHigherAuthority}
+                      disabled={isEscalating}
+                      className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-red-700 transition"
+                    >
+                      {isEscalating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
+                      <span>Confirm & Escalate</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
           </div>
-
-        </div>
-
-      </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

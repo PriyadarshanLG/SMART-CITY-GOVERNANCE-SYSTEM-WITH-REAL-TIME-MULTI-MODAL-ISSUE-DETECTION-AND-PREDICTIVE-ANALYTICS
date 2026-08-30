@@ -11,6 +11,8 @@ export interface ComplaintLocation {
   address?: string;
   ward?: string;
   city?: string;
+  district?: string;
+  state?: string;
   area?: string;
   landmark?: string;
 }
@@ -21,6 +23,9 @@ export interface ComplaintRecord {
   title: string;
   description?: string;
   imageUrl?: string;
+  resolvedImageUrl?: string;
+  resolutionNotes?: string;
+  cropType?: string;
   category: string;
   department: string;
   priority: 'High' | 'Medium' | 'Low';

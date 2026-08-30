@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
 @tailwind components;
@@ -6,17 +7,16 @@
 
 :root {
   color-scheme: light;
-  --font-scale: 100%;
   --background: 210 40% 98%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
-  --border: 214.3 31.8% 90%;
-  --primary: 215 80% 25%;
+  --border: 214.3 31.8% 91.4%;
+  --primary: 221.2 83.2% 53.3%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
-  --accent: 38 92% 48%;
+  --accent: 35 92% 50%;
   --accent-foreground: 210 40% 98%;
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
@@ -28,36 +28,15 @@
   --foreground: 210 40% 98%;
   --card: 222.2 47.4% 8%;
   --card-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 18%;
-  --primary: 215 75% 55%;
+  --border: 217.2 32.6% 16.5%;
+  --primary: 217.2 91.2% 59.8%;
   --primary-foreground: 222.2 47.4% 1.2%;
   --secondary: 217.2 32.6% 15%;
   --secondary-foreground: 210 40% 98%;
-  --accent: 38 92% 55%;
+  --accent: 35 92% 58%;
   --accent-foreground: 210 40% 98%;
   --muted: 217.2 32.6% 14%;
   --muted-foreground: 215 20.2% 65.1%;
-}
-
-/* High Contrast Mode for GIGW Accessibility */
-.high-contrast {
-  --background: 0 0% 0%;
-  --foreground: 60 100% 50%;
-  --card: 0 0% 5%;
-  --card-foreground: 60 100% 50%;
-  --border: 60 100% 50%;
-  --primary: 60 100% 50%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 15%;
-  --secondary-foreground: 60 100% 50%;
-  --accent: 60 100% 50%;
-  --accent-foreground: 0 0% 0%;
-  --muted: 0 0% 10%;
-  --muted-foreground: 60 100% 70%;
-}
-
-html {
-  font-size: var(--font-scale);
 }
 
 html,
@@ -68,10 +47,10 @@ body,
 
 body {
   margin: 0;
-  font-family: 'Outfit', 'Inter', 'Noto Sans Devanagari', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: 'Outfit', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,37 +59,23 @@ body {
   box-sizing: border-box;
 }
 
-/* Accessible focus outline for GIGW */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2.5px solid #d97706 !important;
-  outline-offset: 2px !important;
-}
-
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #0b1329;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: rgba(148, 163, 184, 0.4);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: rgba(148, 163, 184, 0.7);
 }
 
 /* Ticker Animation */
@@ -122,20 +87,19 @@ textarea:focus-visible {
 .animate-ticker {
   display: inline-flex;
   white-space: nowrap;
-  animation: ticker 36s linear infinite;
+  animation: ticker 32s linear infinite;
 }
 
 .animate-ticker:hover {
   animation-play-state: paused;
 }
 
-/* Government Watermark */
-.gov-watermark-bg {
-  background-image: radial-gradient(circle at 50% 50%, rgba(10, 37, 64, 0.03) 0%, transparent 65%);
-}
-
-.dark .gov-watermark-bg {
-  background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.04) 0%, transparent 65%);
+/* Soft grid pattern */
+.soft-grid {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
 }
 
 /* Core Design System Components */
@@ -145,140 +109,90 @@ textarea:focus-visible {
   }
 
   .section-kicker {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#0A2540] dark:text-blue-400;
-  }
-
-  .gov-header-ribbon {
-    @apply h-1.5 w-full bg-gradient-to-r from-[#FF9933] via-[#FFFFFF] to-[#138808] shadow-sm;
-  }
-
-  .gov-panel {
-    @apply rounded-xl bg-white border border-slate-300/80 shadow-gov dark:bg-slate-900 dark:border-slate-800 transition-all duration-200;
-  }
-
-  .gov-panel-header {
-    @apply flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-5 py-3.5 dark:border-slate-800 dark:bg-slate-950/60 rounded-t-xl;
+    @apply text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400;
   }
 
   .glass-card {
-    @apply rounded-2xl bg-white/95 border border-slate-200/90 shadow-gov backdrop-blur-md transition-all duration-200 dark:bg-slate-900/90 dark:border-slate-800/90;
+    @apply rounded-3xl bg-white/90 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] backdrop-blur-md transition-all duration-300 dark:bg-slate-900/85 dark:border-slate-800/80 dark:shadow-[0_4px_24px_rgba(0,0,0,0.35)];
   }
   
   .glass-card-hover {
-    @apply hover:border-slate-400 hover:shadow-gov-card hover:-translate-y-0.5 dark:hover:border-slate-700;
+    @apply hover:border-slate-300 hover:shadow-[0_12px_36px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 dark:hover:border-slate-700 dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)];
   }
 
   .surface-card {
-    @apply rounded-2xl bg-white border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800;
+    @apply rounded-3xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:bg-slate-900 dark:border-slate-800/90;
   }
 
   .surface-card-hover {
-    @apply transition-all duration-200 hover:border-slate-300 hover:shadow-gov-card dark:hover:border-slate-700;
+    @apply transition-all duration-300 hover:border-slate-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 dark:hover:border-slate-700 dark:hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)];
   }
 
-  .btn-gov-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#0A2540] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[#061626] active:scale-[0.99] transition-all dark:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-50 disabled:pointer-events-none;
+  .metric-card {
+    @apply rounded-3xl bg-white p-6 border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:bg-slate-900 dark:border-slate-800/90;
   }
 
-  .btn-gov-saffron {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#D97706] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[#B45309] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none;
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none;
   }
 
-  .btn-gov-green {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#15803D] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[#166534] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none;
-  }
-
-  .btn-gov-outline {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 active:scale-[0.99] transition-all dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 disabled:opacity-50 disabled:pointer-events-none;
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/90 px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:border-slate-700 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .gov-badge {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-[#0A2540]/20 bg-[#0A2540]/5 px-2.5 py-1 text-[10px] font-black tracking-wider uppercase text-[#0A2540] dark:border-blue-400/30 dark:bg-blue-950/50 dark:text-blue-300;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[10px] font-extrabold tracking-widest uppercase text-blue-700 dark:border-blue-400/20 dark:bg-blue-950/40 dark:text-blue-300;
   }
 
-  .gov-badge-saffron {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black tracking-wider uppercase text-amber-800 dark:border-amber-400/30 dark:bg-amber-950/50 dark:text-amber-300;
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300;
   }
 
-  .gov-badge-green {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black tracking-wider uppercase text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950/50 dark:text-emerald-300;
+  .text-title-gradient {
+    @apply bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent dark:from-white dark:via-slate-200 dark:to-slate-400;
   }
 
   .gov-stamp {
-    @apply relative border-2 border-dashed border-[#15803D]/60 rounded-xl p-4 bg-emerald-50/70 dark:bg-emerald-950/30 dark:border-emerald-500/40;
+    @apply relative border-2 border-dashed border-emerald-600/40 rounded-2xl p-4 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-500/30;
   }
 
-  .gov-stamp-navy {
-    @apply relative border-2 border-dashed border-[#0A2540]/60 rounded-xl p-4 bg-slate-50 dark:bg-slate-900/60 dark:border-blue-400/40;
+  /* Radar Pulse Animation */
+  @keyframes radar-pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 16px rgba(59, 130, 246, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
   }
 
-  .barcode-strip {
-    background: repeating-linear-gradient(
-      90deg,
-      #000 0px,
-      #000 2px,
-      transparent 2px,
-      transparent 4px,
-      #000 4px,
-      #000 7px,
-      transparent 7px,
-      transparent 9px,
-      #000 9px,
-      #000 10px,
-      transparent 10px,
-      transparent 13px,
-      #000 13px,
-      #000 16px,
-      transparent 16px,
-      transparent 18px
-    );
+  .animate-radar {
+    animation: radar-pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
   }
 
-  .dark .barcode-strip {
-    background: repeating-linear-gradient(
-      90deg,
-      #fff 0px,
-      #fff 2px,
-      transparent 2px,
-      transparent 4px,
-      #fff 4px,
-      #fff 7px,
-      transparent 7px,
-      transparent 9px,
-      #fff 9px,
-      #fff 10px,
-      transparent 10px,
-      transparent 13px,
-      #fff 13px,
-      #fff 16px,
-      transparent 16px,
-      transparent 18px
-    );
+  /* HUD reticle & scanner lines */
+  .hud-box {
+    @apply relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/80 dark:border-slate-800/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-lg transition-all duration-300;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 35px -5px rgba(59, 130, 246, 0.25);
   }
 }
 
-/* Print Stylesheet for Official Government Dossiers & Challans */
+/* Print Stylesheet for Physical Receipts */
 @media print {
   body {
     background-color: white !important;
     color: black !important;
-    font-size: 11pt !important;
   }
-  header, footer, nav, button, .print\:hidden, .no-print {
+  header, footer, nav, button, .print\:hidden {
     display: none !important;
   }
   .page-shell {
     max-width: 100% !important;
     padding: 0 !important;
-    margin: 0 !important;
   }
-  .gov-panel, .glass-card, .surface-card {
+  .glass-card, .surface-card {
     box-shadow: none !important;
-    border: 1.5px solid #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
     background: white !important;
-    page-break-inside: avoid;
-  }
-  .print-only {
-    display: block !important;
   }
 }
