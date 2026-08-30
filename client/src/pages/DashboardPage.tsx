@@ -15,6 +15,7 @@ import {
   Clock,
   AlertCircle,
   PlusCircle,
+  Plus,
   ArrowRight,
   RefreshCw,
   LogOut,
@@ -53,7 +54,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { useComplaints } from '../lib/complaintsStore';
+import { useComplaints, seedSampleComplaintsForDemo, clearAllComplaints } from '../lib/complaintsStore';
 import type { ComplaintRecord } from '../types/complaint';
 
 export const ALL_DEPARTMENTS = [
@@ -458,7 +459,58 @@ export function DashboardPage() {
             </div>
 
             {/* Right: Department Filter Tabs + Theme + Notifications + Sign Out */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Button 1: Report Complaint */}
+              <button
+                type="button"
+                onClick={() => navigate('/report')}
+                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">+ Report Grievance</span>
+              </button>
+
+              {/* Button 2: Quick Demo Data Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (complaints.length === 0) {
+                    seedSampleComplaintsForDemo();
+                  } else {
+                    clearAllComplaints();
+                  }
+                }}
+                className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm"
+                title="Click to toggle sample complaints across all 4 departments for demo preview"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+                <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
+              </button>
+
+              {/* Button 3: View Role Switcher */}
+              <div className="hidden lg:flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard/citizen')}
+                  className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition"
+                >
+                  Citizen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard/officer')}
+                  className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition"
+                >
+                  Officer
+                </button>
+                <button
+                  type="button"
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white shadow-sm"
+                >
+                  Admin Desk
+                </button>
+              </div>
+
               {/* Notifications */}
               <div className="relative">
                 <button
@@ -469,7 +521,7 @@ export function DashboardPage() {
                   <BellRing className="h-4 w-4 text-amber-500" />
                   <span className="hidden sm:inline">Alerts</span>
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white">
-                    3
+                    {complaints.length}
                   </span>
                 </button>
 
@@ -498,17 +550,6 @@ export function DashboardPage() {
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 transition"
               >
                 {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
-              </button>
-
-              {/* Portal Switcher Button */}
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard/officer')}
-                className="hidden md:flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700 transition"
-                title="Switch to Department Officer view"
-              >
-                <span>Officer Console</span>
-                <ChevronRight className="h-3.5 w-3.5" />
               </button>
 
               {/* Sign Out */}
@@ -1226,7 +1267,58 @@ export function DashboardPage() {
             </div>
 
             {/* Right: Notifications & Actions */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {/* Button 1: Report Complaint */}
+              <button
+                type="button"
+                onClick={() => navigate('/report')}
+                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">+ Report Grievance</span>
+              </button>
+
+              {/* Button 2: Quick Demo Data Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (complaints.length === 0) {
+                    seedSampleComplaintsForDemo();
+                  } else {
+                    clearAllComplaints();
+                  }
+                }}
+                className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm"
+                title="Click to toggle sample complaints across all 4 departments for demo preview"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
+                <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
+              </button>
+
+              {/* Button 3: View Role Switcher */}
+              <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard/citizen')}
+                  className="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
+                >
+                  Citizen
+                </button>
+                <button
+                  type="button"
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white shadow-sm"
+                >
+                  Officer Console
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard/admin')}
+                  className="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
+                >
+                  Admin Desk
+                </button>
+              </div>
+
               {/* Notifications Button from Sketch */}
               <div className="relative">
                 <button
@@ -1237,7 +1329,7 @@ export function DashboardPage() {
                   <BellRing className="h-4 w-4 text-amber-500" />
                   <span className="hidden sm:inline">Notifications</span>
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white">
-                    2
+                    {activeDeptComplaints.length}
                   </span>
                 </button>
 
@@ -1804,7 +1896,58 @@ export function DashboardPage() {
           </div>
 
           {/* Right: Profile, Dark Mode Switcher & Logout */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Button 1: Report Complaint */}
+            <button
+              type="button"
+              onClick={() => navigate('/report')}
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">+ Report Grievance</span>
+            </button>
+
+            {/* Button 2: Quick Demo Data Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                if (complaints.length === 0) {
+                  seedSampleComplaintsForDemo();
+                } else {
+                  clearAllComplaints();
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm"
+              title="Click to toggle sample complaints across all 4 departments for demo preview"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
+              <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
+            </button>
+
+            {/* Button 3: View Role Switcher */}
+            <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+              <button
+                type="button"
+                className="px-2.5 py-1 rounded-lg bg-blue-600 text-white shadow-sm"
+              >
+                Citizen Portal
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/officer')}
+                className="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
+              >
+                Officer
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/admin')}
+                className="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
+              >
+                Admin Desk
+              </button>
+            </div>
+
             {/* Citizen Profile Pill */}
             <button
               type="button"
@@ -2018,53 +2161,82 @@ export function DashboardPage() {
               </div>
 
               <div className="space-y-3 pt-2">
-                {districtComplaints.map((item) => {
-                  const isSolved = item.status === 'Resolved' || item.status === 'Completed';
-                  const isOngoing = item.status === 'Work In Progress' || item.status === 'Work Started';
-
-                  return (
-                    <div
-                      key={item.complaintId}
-                      onClick={() => navigate(`/complaints/${item.complaintId}`)}
-                      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-4 hover:border-blue-500/50 hover:shadow-md transition cursor-pointer group"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-black text-blue-600 dark:text-blue-400">
-                            {item.complaintId}
-                          </span>
-                          <span className="rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                            {item.category}
-                          </span>
-                        </div>
-
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border ${
-                            isSolved
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                              : isOngoing
-                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                              : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
-                          }`}
-                        >
-                          {isSolved ? '● Solved' : isOngoing ? '● Ongoing' : '● Registered'}
-                        </span>
-                      </div>
-
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1">
-                        {item.title}
-                      </h4>
-
-                      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
-                        <span>📍 {item.location?.area || 'Central Area'}</span>
-                        <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
-                          <span>Track Progress</span>
-                          <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
+                {districtComplaints.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-8 text-center space-y-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mx-auto">
+                      <CheckCircle2 className="h-6 w-6" />
                     </div>
-                  );
-                })}
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">No Public Grievances Logged in {userCity} Yet</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                      The municipal queue is clear. Click "+ Report Complaint" to log a new issue or load demo grievances.
+                    </p>
+                    <div className="pt-2 flex flex-wrap justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/report')}
+                        className="rounded-2xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition shadow-sm"
+                      >
+                        + Report Complaint
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => seedSampleComplaintsForDemo()}
+                        className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 px-5 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm flex items-center gap-1.5"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>⚡ Load Demo Grievances</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  districtComplaints.map((item) => {
+                    const isSolved = item.status === 'Resolved' || item.status === 'Completed';
+                    const isOngoing = item.status === 'Work In Progress' || item.status === 'Work Started';
+
+                    return (
+                      <div
+                        key={item.complaintId}
+                        onClick={() => navigate(`/complaints/${item.complaintId}`)}
+                        className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-4 hover:border-blue-500/50 hover:shadow-md transition cursor-pointer group"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-black text-blue-600 dark:text-blue-400">
+                              {item.complaintId}
+                            </span>
+                            <span className="rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                              {item.category}
+                            </span>
+                          </div>
+
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border ${
+                              isSolved
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                : isOngoing
+                                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                            }`}
+                          >
+                            {isSolved ? '● Solved' : isOngoing ? '● Ongoing' : '● Registered'}
+                          </span>
+                        </div>
+
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1">
+                          {item.title}
+                        </h4>
+
+                        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                          <span>📍 {item.location?.area || 'Central Area'}</span>
+                          <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
+                            <span>Track Progress</span>
+                            <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

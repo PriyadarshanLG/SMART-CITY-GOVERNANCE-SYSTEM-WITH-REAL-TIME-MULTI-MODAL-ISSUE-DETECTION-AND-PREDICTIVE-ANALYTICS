@@ -28,6 +28,7 @@ interface AuthContextType {
     state?: string;
     district?: string;
     city?: string;
+    stateCode?: string;
   }) => Promise<{ success: boolean; message?: string }>;
   quickLoginAsRole: (role: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;

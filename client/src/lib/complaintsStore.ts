@@ -217,6 +217,130 @@ export async function transferComplaintToDept(
   return updatedRecord;
 }
 
+export function clearAllComplaints() {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+  window.dispatchEvent(new CustomEvent(EVENT_KEY, { detail: [] }));
+}
+
+export function seedSampleComplaintsForDemo() {
+  const sampleData: ComplaintRecord[] = [
+    {
+      complaintId: 'SC-2026-109201',
+      title: 'Deep crater pothole on Hassan Ring Road near Dairy Circle',
+      category: 'PWD: Roads, Bridges & Potholes',
+      department: 'Public Works Department (PWD)',
+      priority: 'High',
+      status: 'Work In Progress',
+      supportCount: 28,
+      citizenName: 'Priya S.',
+      citizenPhone: '+91 98765 43210',
+      citizenEmail: 'priya.s@gmail.com',
+      description:
+        'Multiple deep potholes formed across 30 meters of roadway. Heavy traffic bottleneck during peak hours.',
+      location: {
+        ward: 'Ward 04',
+        area: 'Dairy Circle Ring Road',
+        city: 'Hassan',
+        district: 'Hassan',
+        state: 'Karnataka',
+        latitude: 13.0042,
+        longitude: 76.1018,
+      },
+      createdAt: new Date(Date.now() - 3600 * 24 * 3 * 1000).toISOString(),
+      timeline: [
+        { status: 'Submitted', note: 'Grievance submitted with GPS coordinates.' },
+        { status: 'Department Assigned', note: 'Assigned to Ward Engineer Er. D. Kulkarni (PWD).' },
+        { status: 'Work In Progress', note: 'Bitumen patching team dispatched.' },
+      ],
+    },
+    {
+      complaintId: 'SC-2026-204108',
+      title: 'Commercial garbage mound overflow near BM Road Market',
+      category: 'Municipal: Waste Management & Sanitation',
+      department: 'Municipal Corporation',
+      priority: 'High',
+      status: 'Department Assigned',
+      supportCount: 35,
+      citizenName: 'M. Venkatesh',
+      citizenPhone: '+91 98450 99881',
+      description:
+        'Large piles of commercial waste and plastic packaging blocking pedestrian walkway outside vegetable market gate.',
+      location: {
+        ward: 'Ward 02',
+        area: 'BM Road Vegetable Market',
+        city: 'Hassan',
+        district: 'Hassan',
+        state: 'Karnataka',
+        latitude: 13.0078,
+        longitude: 76.0982,
+      },
+      createdAt: new Date(Date.now() - 3600 * 12 * 1000).toISOString(),
+      timeline: [
+        { status: 'Submitted', note: 'Sanitation complaint raised by market association.' },
+        { status: 'Department Assigned', note: 'Dispatched to Municipal Health Inspector.' },
+      ],
+    },
+    {
+      complaintId: 'SC-2026-308112',
+      title: 'Faded tourist direction signboards near Hemavathi Heritage Sanctuary',
+      category: 'Tourism: Tourist Info Signboards & Pathways',
+      department: 'Tourism Department',
+      priority: 'Medium',
+      status: 'Work In Progress',
+      supportCount: 14,
+      citizenName: 'Kavita Rao',
+      citizenPhone: '+91 98453 22110',
+      description:
+        'Directional signboards to historic temples are rusted and unreadable, confusing out-of-station tourists.',
+      location: {
+        ward: 'Ward 01',
+        area: 'Hemavathi River Sanctuary Road',
+        city: 'Hassan',
+        district: 'Hassan',
+        state: 'Karnataka',
+        latitude: 12.9985,
+        longitude: 76.0912,
+      },
+      createdAt: new Date(Date.now() - 3600 * 24 * 2 * 1000).toISOString(),
+      timeline: [
+        { status: 'Submitted', note: 'Tourism amenity ticket logged.' },
+        { status: 'Work In Progress', note: 'Signboard repainting & LED fixture order placed.' },
+      ],
+    },
+    {
+      complaintId: 'SC-2026-402919',
+      title: 'Coconut leaf yellowing & suspected bud rot outbreak',
+      category: 'Agriculture: Coconut & Palm Pest Diagnosis',
+      department: 'Agriculture Department',
+      priority: 'High',
+      status: 'Department Assigned',
+      supportCount: 42,
+      cropType: 'Coconut 🥥',
+      citizenName: 'Farmer N. Ramesh',
+      citizenPhone: '+91 94480 55667',
+      description:
+        'Severe yellowing of lower fronds and crown drooping noticed across 2 acres of coconut palm plantation.',
+      location: {
+        ward: 'Ward 08',
+        area: 'Salagame Road Agro Sector',
+        city: 'Hassan',
+        district: 'Hassan',
+        state: 'Karnataka',
+        latitude: 13.015,
+        longitude: 76.112,
+      },
+      createdAt: new Date(Date.now() - 3600 * 18 * 1000).toISOString(),
+      timeline: [
+        { status: 'Submitted', note: 'Farmer direct advisory request raised.' },
+        { status: 'Department Assigned', note: 'Assigned to Dr. H. M. Lingaraju (Plant Protection Officer).' },
+      ],
+    },
+  ];
+
+  saveComplaints(sampleData);
+}
+
 // React Hook for Real-Time Sync across all components
 export function useComplaints() {
   const [complaints, setComplaints] = useState<ComplaintRecord[]>(getStoredComplaints);
