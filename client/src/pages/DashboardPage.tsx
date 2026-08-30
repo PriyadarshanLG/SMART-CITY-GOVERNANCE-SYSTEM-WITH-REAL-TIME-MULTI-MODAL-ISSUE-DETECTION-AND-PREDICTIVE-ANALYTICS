@@ -428,14 +428,14 @@ export function DashboardPage() {
     const activeAdminDeptMeta = DEPARTMENT_METADATA.find((d) => d.id === selectedAdminDept);
 
     return (
-      <div className="min-h-screen w-full bg-slate-900 text-slate-100 font-sans pb-16 transition-colors duration-300">
+      <div className="dashboard-shell min-h-screen w-full bg-slate-900 text-slate-100 font-sans pb-16 transition-colors duration-300">
         {/* Top Government Accent Strip */}
         <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
 
         {/* ------------------------------------------------------------------- */}
         {/* ADMIN HEADER                                                        */}
         {/* ------------------------------------------------------------------- */}
-        <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl transition-colors">
+        <header className="dashboard-panel sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-xl transition-colors">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
             {/* Left: Administration Branding */}
             <div className="flex items-center gap-3">
@@ -1223,14 +1223,14 @@ export function DashboardPage() {
   // =========================================================================
   if (isOfficerView) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
+      <div className="dashboard-shell min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
         {/* Top Government Accent Strip */}
         <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
 
         {/* ------------------------------------------------------------------- */}
         {/* HEADER: "departments" & "Notifications" (Per Sketch)                 */}
         {/* ------------------------------------------------------------------- */}
-        <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
+        <header className="dashboard-panel sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
             {/* Left: Department Logo & Department Selector */}
             <div className="flex items-center gap-3">
@@ -1867,14 +1867,14 @@ export function DashboardPage() {
   // Right Column: Recent complaints of the city
   // =========================================================================
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
+    <div className="dashboard-shell min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
       {/* Top Government Accent Strip */}
       <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
 
       {/* ------------------------------------------------------------------- */}
       {/* CITIZEN HEADER (Clean Single-Row Layout: Branding | Nav Items | Profile, Sun/Moon, Logout) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
+      <header className="dashboard-panel sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8 gap-3 flex-wrap">
           {/* Left: Branding & City Info */}
           <div className="flex items-center gap-3">
@@ -2234,30 +2234,40 @@ export function DashboardPage() {
                     const isSolved = item.status === 'Resolved' || item.status === 'Completed';
                     const isOngoing = item.status === 'Work In Progress' || item.status === 'Work Started';
 
+                    // 25% opacity background colors based on grievance status:
+                    // Registered = Red (25% transparency)
+                    // Ongoing = Yellow / Amber (25% transparency)
+                    // Completed / Solved = Green (25% transparency)
+                    const cardBgStyle = isSolved
+                      ? 'bg-emerald-500/25 dark:bg-emerald-950/40 border-emerald-500/40 hover:border-emerald-500/80 shadow-emerald-500/5'
+                      : isOngoing
+                      ? 'bg-amber-500/25 dark:bg-amber-950/40 border-amber-500/40 hover:border-amber-500/80 shadow-amber-500/5'
+                      : 'bg-red-500/25 dark:bg-red-950/40 border-red-500/40 hover:border-red-500/80 shadow-red-500/5';
+
+                    const statusPillStyle = isSolved
+                      ? 'bg-emerald-600 text-white border-emerald-400/40'
+                      : isOngoing
+                      ? 'bg-amber-500 text-slate-950 font-black border-amber-300/40'
+                      : 'bg-red-600 text-white border-red-400/40';
+
                     return (
                       <div
                         key={item.complaintId}
                         onClick={() => navigate(`/complaints/${item.complaintId}`)}
-                        className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-4 hover:border-blue-500/50 hover:shadow-md transition cursor-pointer group"
+                        className={`rounded-2xl border p-4 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group ${cardBgStyle}`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-black text-blue-600 dark:text-blue-400">
+                            <span className="font-mono text-xs font-black text-slate-900 dark:text-white">
                               {item.complaintId}
                             </span>
-                            <span className="rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                            <span className="rounded-full bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                               {item.category}
                             </span>
                           </div>
 
                           <span
-                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border ${
-                              isSolved
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                                : isOngoing
-                                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                                : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
-                            }`}
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border shadow-sm ${statusPillStyle}`}
                           >
                             {isSolved ? '● Solved' : isOngoing ? '● Ongoing' : '● Registered'}
                           </span>
@@ -2267,9 +2277,9 @@ export function DashboardPage() {
                           {item.title}
                         </h4>
 
-                        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
-                          <span>📍 {item.location?.area || 'Central Area'}</span>
-                          <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
+                        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-700 dark:text-slate-300 pt-2 border-t border-slate-900/10 dark:border-white/10">
+                          <span className="font-semibold">📍 {item.location?.area || 'Central Area'}</span>
+                          <div className="flex items-center gap-1 text-slate-900 dark:text-white font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
                             <span>Track Progress</span>
                             <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                           </div>
