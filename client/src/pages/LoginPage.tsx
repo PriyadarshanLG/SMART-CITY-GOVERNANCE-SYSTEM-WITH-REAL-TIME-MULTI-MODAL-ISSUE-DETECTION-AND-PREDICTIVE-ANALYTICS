@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   AlertCircle,
   CheckCircle2,
@@ -79,7 +80,7 @@ export function LoginPage() {
 
   return (
     <div className="page-shell flex min-h-[calc(100vh-8rem)] items-center justify-center py-12">
-      <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="grid w-full max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
         
         {/* Left Side: National SSO & Trust Info */}
         <div className="gov-panel p-8 border-2 border-[#0A2540] flex flex-col justify-between dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -265,7 +266,7 @@ export function LoginPage() {
 
         </div>
 
-      </div>
+      </motion.div>
     </div>
   );
 }

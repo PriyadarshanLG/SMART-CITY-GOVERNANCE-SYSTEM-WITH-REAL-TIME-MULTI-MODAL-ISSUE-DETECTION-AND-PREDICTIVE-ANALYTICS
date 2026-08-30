@@ -1910,12 +1910,12 @@ export function DashboardPage() {
 
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                <span className="hero-brand text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
                   JanSeva · Citizen Portal
                 </span>
                 <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               </div>
-              <h1 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+              <h1 className="display-heading text-sm sm:text-base font-black text-slate-900 dark:text-white">
                 {userCity} City Grievance Redressal
               </h1>
             </div>
@@ -2033,42 +2033,40 @@ export function DashboardPage() {
         {/* ------------------------------------------------------------------- */}
         {/* UNIFIED COMPACT WELCOME BOX WITH BORDERLESS MAP (~40% WIDTH)        */}
         {/* ------------------------------------------------------------------- */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-5 sm:p-6 text-white shadow-xl shadow-blue-500/10">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            
-            {/* Left Side: Welcome Greeting & Action Buttons (~60% width) */}
-            <div className="flex-1 space-y-3">
-              <div className="space-y-1">
+        <div className="hero-shell p-5 sm:p-6 text-white">
+          <div className="hero-content flex flex-col lg:flex-row lg:items-center justify-between gap-5 lg:gap-8">
+            <div className="flex-1 space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full text-blue-100 backdrop-blur-md">
+                  <span className="hero-brand text-[10px] font-black uppercase tracking-[0.22em] text-blue-100">
                     JanSeva · Citizen Portal
                   </span>
-                  <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-black text-white">
+                <h2 className="hero-title text-white">
                   Welcome back, {user?.name || 'Citizen'} 👋
                 </h2>
 
-                <p className="text-xs sm:text-sm text-blue-100/90 max-w-xl">
+                <p className="hero-subtext">
                   Real-time multi-department issue detection, GPS geo-tagging, and 5-day SLA escalation monitoring.
                 </p>
               </div>
 
-              <div className="pt-1 flex flex-wrap items-center gap-2.5">
+              <div className="pt-1 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => navigate('/report')}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-xs sm:text-sm font-black text-blue-700 hover:bg-blue-50 hover:shadow-lg active:scale-95 transition shrink-0 shadow-md"
+                  className="hero-cta-primary"
                 >
-                  <PlusCircle className="h-4 w-4" />
+                  <PlusCircle className="h-5 w-5" />
                   <span>Report New Grievance</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setIsTrackModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/20 transition backdrop-blur-sm"
+                  className="hero-cta-secondary"
                 >
                   <Search className="h-4 w-4 text-blue-200" />
                   <span>Track Token</span>
@@ -2076,9 +2074,8 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {/* Right Side: Map ONLY (~38-40% width, NO black borders, NO heavy extra frames!) */}
-            <div className="w-full lg:w-[38%] shrink-0">
-              <div className="relative rounded-2xl overflow-hidden shadow-lg border border-white/20 h-32 sm:h-36 w-full group">
+            <div className="w-full lg:w-[42%] shrink-0 flex justify-end">
+              <div className="map-panel relative group">
                 <iframe
                   title="Live Citizen Map"
                   width="100%"
@@ -2091,17 +2088,15 @@ export function DashboardPage() {
                   className="w-full h-full opacity-95 group-hover:opacity-100 transition"
                 />
 
-                {/* Minimal Live Location Badge */}
-                <div className="absolute top-2 left-2 bg-slate-950/80 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-bold text-white flex items-center gap-1.5 shadow-sm border border-white/20">
+                <div className="map-badge">
                   <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>📍 Live Location</span>
+                  <span>Live Location</span>
                 </div>
 
-                {/* Minimal Detect GPS Button overlay */}
                 <button
                   type="button"
                   onClick={handleDetectLiveGPS}
-                  className="absolute bottom-2 right-2 bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-bold text-white flex items-center gap-1 shadow-sm border border-white/20 transition"
+                  className="map-button"
                   title="Detect Current Location"
                 >
                   <LocateFixed className="h-3 w-3 text-blue-300" />
@@ -2109,7 +2104,6 @@ export function DashboardPage() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -2119,51 +2113,6 @@ export function DashboardPage() {
           {/* Left Column: Actions & District Summary */}
           <div className="lg:col-span-5 space-y-4">
             
-            {/* Top Action Cards: Report Complaint & Track Grievance */}
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => navigate('/report')}
-                className="w-full flex items-center justify-between rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-5 text-left text-white shadow-lg shadow-blue-600/20 hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white group-hover:scale-110 transition-transform">
-                    <Camera className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-200 block">
-                      AI Powered Grievance Filing
-                    </span>
-                    <h3 className="text-lg font-black text-white">
-                      Report complaint
-                    </h3>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 text-white/80 group-hover:translate-x-1 transition" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsTrackModalOpen(true)}
-                className="w-full flex items-center justify-between rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 text-left hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg active:scale-[0.98] transition group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                    <Search className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                      Live Token Verification
-                    </span>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                      Track GRIEVANCE
-                    </h3>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition" />
-              </button>
-            </div>
-
             {/* District Summary */}
             <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
@@ -2328,44 +2277,72 @@ export function DashboardPage() {
                       : 'bg-red-500/25 dark:bg-red-950/40 border-red-500/40 hover:border-red-500/80 shadow-red-500/5';
 
                     const statusPillStyle = isSolved
-                      ? 'bg-emerald-600 text-white border-emerald-400/40'
+                      ? 'bg-emerald-600 text-white border-emerald-400/40 font-black'
                       : isOngoing
                       ? 'bg-amber-500 text-slate-950 font-black border-amber-300/40'
-                      : 'bg-red-600 text-white border-red-400/40';
+                      : 'bg-red-600 text-white border-red-400/40 font-black';
+
+                    // Image display logic per user instruction:
+                    // If Solved -> show solved work photo proof (or fallback solved image)
+                    // If Ongoing / Registered -> show citizen uploaded problem photo (or fallback problem image)
+                    const displayImage = isSolved
+                      ? (item.resolvedImageUrl || item.imageUrl || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=200&auto=format&fit=crop&q=80')
+                      : (item.imageUrl || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=200&auto=format&fit=crop&q=80');
+
+                    const imageBadgeText = isSolved ? '✅ Solved' : '📷 Problem';
 
                     return (
                       <div
                         key={item.complaintId}
                         onClick={() => navigate(`/complaints/${item.complaintId}`)}
-                        className={`rounded-2xl border p-4 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group ${cardBgStyle}`}
+                        className={`rounded-2xl border p-3.5 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group ${cardBgStyle}`}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-black text-slate-900 dark:text-white">
-                              {item.complaintId}
-                            </span>
-                            <span className="rounded-full bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
-                              {item.category}
-                            </span>
+                        <div className="flex items-center gap-3">
+                          
+                          {/* Image Thumbnail inside the box */}
+                          <div className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-xl overflow-hidden shadow-sm shrink-0 border border-white/50 bg-slate-900 group-hover:scale-105 transition-transform duration-200">
+                            <img
+                              src={displayImage}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[8px] font-black text-white text-center py-0.5 px-0.5 truncate">
+                              {imageBadgeText}
+                            </div>
                           </div>
 
-                          <span
-                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border shadow-sm ${statusPillStyle}`}
-                          >
-                            {isSolved ? '● Solved' : isOngoing ? '● Ongoing' : '● Registered'}
-                          </span>
-                        </div>
+                          {/* Content Details */}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center justify-between gap-1.5">
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span className="font-mono text-xs font-black text-slate-900 dark:text-white shrink-0">
+                                  {item.complaintId}
+                                </span>
+                                <span className="rounded-full bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 text-[9px] font-bold text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 truncate max-w-[140px]">
+                                  {item.category}
+                                </span>
+                              </div>
 
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1">
-                          {item.title}
-                        </h4>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider border shadow-sm shrink-0 ${statusPillStyle}`}
+                              >
+                                {isSolved ? '● Solved' : isOngoing ? '● Ongoing' : '● Registered'}
+                              </span>
+                            </div>
 
-                        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-700 dark:text-slate-300 pt-2 border-t border-slate-900/10 dark:border-white/10">
-                          <span className="font-semibold">📍 {item.location?.area || 'Central Area'}</span>
-                          <div className="flex items-center gap-1 text-slate-900 dark:text-white font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                            <span>Track Progress</span>
-                            <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1">
+                              {item.title}
+                            </h4>
+
+                            <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 pt-1 border-t border-slate-900/10 dark:border-white/10">
+                              <span className="font-semibold truncate">📍 {item.location?.area || 'Central Area'}</span>
+                              <div className="flex items-center gap-1 text-slate-900 dark:text-white font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition shrink-0">
+                                <span>Track Progress</span>
+                                <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            </div>
                           </div>
+
                         </div>
                       </div>
                     );

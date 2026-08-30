@@ -327,12 +327,12 @@ export function LandingPage() {
 
             {/* Live Stats Row */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {stats.map((item) => (
-                <div key={item.label} className={`surface-card border-l-4 p-4 ${item.border}`}>
+              {stats.map((item, idx) => (
+                <motion.div key={item.label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: idx * 0.05 }} className={`surface-card border-l-4 p-4 hover:shadow-md transition-all duration-300 ${item.border}`}>
                   <p className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white">{item.value}</p>
                   <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{item.label}</p>
                   <span className="mt-2 inline-block text-[10px] font-semibold text-slate-400 dark:text-slate-500">{item.change}</span>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -411,10 +411,10 @@ export function LandingPage() {
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => {
+          {features.map((feature, idx) => {
             const Icon = feature.icon;
             return (
-              <div key={feature.title} className="glass-card glass-card-hover p-6 flex flex-col justify-between">
+              <motion.div key={feature.title} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: idx * 0.1 }} className="glass-card glass-card-hover p-6 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                 <div>
                   <div className="flex items-center justify-between">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
@@ -427,7 +427,7 @@ export function LandingPage() {
                   <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-white">{feature.title}</h3>
                   <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{feature.text}</p>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -448,7 +448,7 @@ export function LandingPage() {
 
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {workflowSteps.map((item, index) => (
-              <div key={item.step} className="relative rounded-2xl border border-slate-200 bg-slate-50/70 p-6 dark:border-slate-800 dark:bg-slate-900/40">
+              <motion.div key={item.step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.1 }} className="relative rounded-2xl border border-slate-200 bg-slate-50/70 p-6 dark:border-slate-800 dark:bg-slate-900/40 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                 <span className="text-3xl font-black text-blue-600/30 dark:text-blue-400/30 font-mono">
                   {item.step}
                 </span>
@@ -459,7 +459,7 @@ export function LandingPage() {
                     →
                   </span>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

@@ -640,7 +640,7 @@ export function ComplaintFormPage() {
         {/* SECTION 1: TOP COMPLAINT DETAILS BOX (Per Handwritten Sketch)             */}
         {/* Complaint Headline | Category: autofill | Priority | Details with Mic 🎙️  */}
         {/* ========================================================================= */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm space-y-5">
+        <motion.div className="form-section" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           
           {/* 1. Complaint Headline */}
           <div>
@@ -787,12 +787,12 @@ export function ComplaintFormPage() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ========================================================================= */}
         {/* SECTION 2: MEDIA CAPTURE BOX (Upload photo live camera or video)          */}
         {/* ========================================================================= */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm space-y-4">
+        <motion.div className="form-section" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3.5">
             <div>
@@ -953,13 +953,13 @@ export function ComplaintFormPage() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* ========================================================================= */}
         {/* SECTION 3: LIVE LOCATION BOX (Split 2-Columns as Sketched)                */}
         {/* Left: Detect live location & auto read | Right: Live Interactive Map      */}
         {/* ========================================================================= */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm space-y-4">
+        <motion.div className="form-section" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
           
           <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
@@ -1075,7 +1075,7 @@ export function ComplaintFormPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ========================================================================= */}
         {/* BOTTOM ACTION BUTTONS: [Preview] & [Submit & Track] (Per Sketch)          */}

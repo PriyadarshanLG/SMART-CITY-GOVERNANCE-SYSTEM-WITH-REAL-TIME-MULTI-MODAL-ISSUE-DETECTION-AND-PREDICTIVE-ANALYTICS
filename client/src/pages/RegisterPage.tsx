@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   AlertCircle,
   CheckCircle2,
@@ -107,7 +108,7 @@ export function RegisterPage() {
 
   return (
     <div className="page-shell flex min-h-[calc(100vh-8rem)] items-center justify-center py-12">
-      <div className="w-full max-w-lg">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-lg">
         
         {/* Card styled directly after Reference Image 4 */}
         <div className="rounded-2xl border-2 border-[#1f7a7a]/40 bg-[#d8eabf] p-8 shadow-2xl text-slate-900">
@@ -296,7 +297,7 @@ export function RegisterPage() {
 
         </div>
 
-      </div>
+      </motion.div>
     </div>
   );
 }

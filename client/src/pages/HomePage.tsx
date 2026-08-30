@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../lib/api';
 import {
   AreaChart,
@@ -139,8 +140,8 @@ export function HomePage() {
 
       {/* 4 Metric KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ label, value, change, isPositive, icon: Icon }) => (
-          <div key={label} className="metric-card surface-card-hover flex flex-col justify-between">
+        {stats.map(({ label, value, change, isPositive, icon: Icon }, idx) => (
+          <motion.div key={label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: idx * 0.08 }} className="metric-card surface-card-hover flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
             <div className="flex items-start justify-between">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white dark:bg-blue-600 shadow-sm">
                 <Icon className="h-5 w-5" />
@@ -159,7 +160,7 @@ export function HomePage() {
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</p>
               <p className="mt-1 text-3xl font-black tracking-tight text-slate-950 dark:text-white">{value}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
