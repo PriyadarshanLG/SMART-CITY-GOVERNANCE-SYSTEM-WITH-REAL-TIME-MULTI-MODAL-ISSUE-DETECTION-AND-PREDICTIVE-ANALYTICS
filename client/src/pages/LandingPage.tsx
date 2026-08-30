@@ -23,20 +23,20 @@ const features = [
   {
     icon: Shield,
     title: 'Secure Citizen Audit',
-    text: 'Encrypted submission with verified tracking tokens, safeguarding citizen data privacy.',
+    text: 'Your complaint is protected and tracked securely throughout the process.',
     badge: 'Security',
   },
   {
     icon: MapPinned,
-    title: 'Geospatial Ward Mapping',
-    text: 'Ward-level geo-tagging with GIS boundary mapping and real-time alert pins.',
-    badge: 'GIS Intel',
+    title: 'Exact Location Mapping',
+    text: 'Your complaint location is marked on a map with ward-level details for quick access.',
+    badge: 'Location',
   },
   {
     icon: Zap,
-    title: 'Automated ML Routing',
-    text: 'Real-time NLP categorizes grievance urgency and routes directly to respective engineers.',
-    badge: 'AI Powered',
+    title: 'Smart Routing',
+    text: 'System automatically figures out which department should handle your complaint.',
+    badge: 'Smart',
   },
   {
     icon: Megaphone,
@@ -48,15 +48,15 @@ const features = [
 
 const stats = [
   { value: '18,423', label: 'Grievances Filed', change: '+12% this month', border: 'border-l-orange-500' },
-  { value: '14,218', label: 'Redressed Cases', change: '84.8% SLA rate', border: 'border-l-emerald-500' },
-  { value: '2,106', label: 'Active in Queue', change: 'Avg 9.4h resolution', border: 'border-l-blue-500' },
+  { value: '14,218', label: 'Issues Fixed', change: '84.8% on time', border: 'border-l-emerald-500' },
+  { value: '2,106', label: 'In Progress', change: 'Average 9.4 hours', border: 'border-l-blue-500' },
   { value: '120+', label: 'Covered Wards', change: '100% GIS mapped', border: 'border-l-amber-500' },
 ];
 
 const workflowSteps = [
   { step: '01', title: 'File Issue', desc: 'Submit issue with location, description, and optional photo in under 60 seconds.' },
   { step: '02', title: 'ML Classifier', desc: 'Auto-detects department, category, and priority using local machine learning.' },
-  { step: '03', title: 'Ward Officer Action', desc: 'Assigned to ward engineer with strict SLA turnaround deadlines.' },
+  { step: '03', title: 'Ward Officer Action', desc: 'Assigned to team member who has a 5-day deadline to fix it.' },
   { step: '04', title: 'Audit & Closure', desc: 'Before/after photo audit with citizen confirmation and rating.' },
 ];
 
@@ -260,7 +260,7 @@ export function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex flex-wrap items-center gap-3">
               <span className="gov-badge">
-                🇮🇳 Official Citizen Redressal Portal
+                🇮🇳 Official Complaint Portal
               </span>
               <button
                 onClick={toggleSimpleMode}
@@ -271,11 +271,11 @@ export function LandingPage() {
             </div>
 
             <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl dark:text-white leading-[1.08]">
-              Transparent Civic Redressal for a <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-500 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-400 dark:to-sky-300">Smart Society</span>
+              Smart City Complaint System for a <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-500 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-400 dark:to-sky-300">Better Community</span>
             </h1>
 
             <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300 sm:text-base font-normal">
-              Official municipal grievance registration platform. File civic disputes, potholes, lighting faults, or sanitation requests. Grievances are classified automatically using Machine Learning and routed to designated field officers for accountable resolution.
+              File your civic complaint - potholes, broken lights, sanitation issues, and more. Our system automatically sends each complaint to the right team and tracks it until it's fixed.
             </p>
 
             {/* Quick Grievance Reference Lookup Box */}
@@ -357,7 +357,7 @@ export function LandingPage() {
                 </div>
                 <h3 className="mt-4 text-xl font-bold">Intelligent Triage Surface</h3>
                 <p className="mt-2 text-xs leading-relaxed text-slate-300">
-                  Automated routing classifies citizen inputs with 95.8% accuracy into respective municipal departments.
+                  Our system automatically sends complaints to the right department with 95.8% accuracy.
                 </p>
 
                 <div className="mt-5 grid grid-cols-2 gap-2 text-xs font-medium">
@@ -442,7 +442,7 @@ export function LandingPage() {
               How a Grievance is Resolved
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-              From submission to on-site municipal verification, track the guaranteed 4-step SLA progression.
+              From submission to official verification, track the guaranteed 4-step process.
             </p>
           </div>
 

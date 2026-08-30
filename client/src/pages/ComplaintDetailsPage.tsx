@@ -290,7 +290,7 @@ export function ComplaintDetailsPage() {
 
       setIsEscalated(true);
       setEscalationSuccessMsg(
-        'Escalation dossier successfully dispatched to Municipal Commissioner & District Magistrate office.'
+        'Your issue has been sent to the higher authority for urgent review.'
       );
       setTimeout(() => {
         setIsEscalateModalOpen(false);
@@ -435,7 +435,7 @@ export function ComplaintDetailsPage() {
                   Grievance Details
                 </h1>
                 <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
-                  Live SLA & Officer Resolution Tracker
+                  Track Your Complaint
                 </p>
               </div>
             </div>
@@ -529,7 +529,7 @@ export function ComplaintDetailsPage() {
                 <span>Tracking details about complaint</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Audit trail from AI classification to field engineer resolution
+                Track progress from report to fix
               </p>
             </div>
 
@@ -539,7 +539,7 @@ export function ComplaintDetailsPage() {
               </span>
               {isMoreThan5Days && !isSolved && (
                 <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 text-[10px] font-extrabold text-red-600 dark:text-red-400 border border-red-500/20 animate-pulse">
-                  ⚠️ SLA Breach (&gt;5 Days)
+                  ⚠️ Taking Longer Than Expected
                 </span>
               )}
             </div>
@@ -650,7 +650,7 @@ export function ComplaintDetailsPage() {
                       Work Completed & Verified (Officer Shared Proof)
                     </h4>
                     <p className="text-[11px] text-emerald-800 dark:text-emerald-400">
-                      The assigned field engineer completed the resolution and uploaded the photo proof below:
+                      The team member assigned to your issue finished the repair and submitted a photo below:
                     </p>
                   </div>
                 </div>
@@ -692,7 +692,7 @@ export function ComplaintDetailsPage() {
                 <span>Department Details based on complaint officer</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Designated municipal wing and ward engineer in charge
+                Assigned team and contact information
               </p>
             </div>
 
@@ -790,10 +790,10 @@ export function ComplaintDetailsPage() {
                 <span>Official Escalation Window</span>
               </div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white mt-1">
-                Raise Issue to Higher Authority
+                Send to Higher Authority
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                If the grievance is unresolved for <span className="font-bold text-red-600 dark:text-red-400">&gt; 5 days</span> or the ward engineer is unresponsive, you can directly escalate this case to the <strong>Municipal Commissioner & District Collector</strong>.
+                If your complaint isn't fixed within 5 days, or the team member isn't responding, you can escalate it to senior officials.
               </p>
             </div>
 
@@ -805,7 +805,7 @@ export function ComplaintDetailsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-700 dark:text-slate-300">Escalation Tier:</span>
-                <span className="font-bold text-slate-900 dark:text-white">Tier-2 IAS Municipal Level</span>
+                <span className="font-bold text-slate-900 dark:text-white">Send to Senior Officials</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-700 dark:text-slate-300">Authority in Charge:</span>
@@ -827,7 +827,7 @@ export function ComplaintDetailsPage() {
                   className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 py-3.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-xl shadow-red-600/25 hover:from-red-700 hover:to-rose-700 active:scale-95 transition"
                 >
                   <ShieldAlert className="h-4 w-4" />
-                  <span>Raise Issue to Higher Authority</span>
+                  <span>Send to Higher Authority</span>
                 </button>
               )}
             </div>
@@ -869,7 +869,7 @@ export function ComplaintDetailsPage() {
 
                 <div>
                   <label className="block font-bold uppercase text-slate-500 mb-1">
-                    Field Engineer Note
+                    Team Member Note
                   </label>
                   <input
                     type="text"
@@ -947,9 +947,9 @@ export function ComplaintDetailsPage() {
               ) : (
                 <>
                   <div className="rounded-2xl bg-red-50 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300 space-y-1">
-                    <p className="font-bold">⚠️ Statutory Notice under Public Grievance Charter:</p>
+                    <p className="font-bold">⚠️ Important Notice:</p>
                     <p>
-                      Ticket #{complaint.complaintId} has exceeded the 5-day standard resolution threshold. This escalation will be dispatched directly to the <strong>District Collector & Municipal Commissioner</strong> executive dashboard with top priority flag.
+                      Ticket #{complaint.complaintId} has been open for more than 5 days. This case has been marked for immediate attention by senior officials.
                     </p>
                   </div>
 

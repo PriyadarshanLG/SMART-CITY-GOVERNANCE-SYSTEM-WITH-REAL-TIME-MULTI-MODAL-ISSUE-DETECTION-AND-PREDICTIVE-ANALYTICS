@@ -303,13 +303,13 @@ export function ComplaintFormPage() {
     reader.readAsDataURL(file);
   };
 
-  // AI Classification trigger
+  // Smart image analysis
   const runAiClassification = (imageUrl: string) => {
     setIsAnalyzingMedia(true);
     setTimeout(() => {
       setIsAnalyzingMedia(false);
       setAiDetection({
-        detected: 'Road Surface Defect / Pothole (YOLOv8)',
+        detected: 'Pothole - Road Surface Damage',
         confidence: 96.8,
         suggestedCategory: 'Road Damage & Potholes',
         suggestedPriority: 'High',
@@ -720,10 +720,10 @@ export function ComplaintFormPage() {
                 <span className="text-base">🌾</span>
                 <div>
                   <h4 className="text-xs font-black text-emerald-900 dark:text-emerald-200">
-                    Farmer Direct Problem & Advisory Reporting
+                    Farmer Advisory - Crop & Pest Help
                   </h4>
                   <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                    Select your affected crop and attach a photo below. The Agriculture Officer will inspect and issue pest diagnosis & treatment advice.
+                    Tell us which crop has the problem and upload a photo. Our farm expert will visit and give you advice on how to fix it.
                   </p>
                 </div>
               </div>
@@ -756,7 +756,7 @@ export function ComplaintFormPage() {
               {isListening && (
                 <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-500 animate-pulse">
                   <span className="h-2 w-2 rounded-full bg-red-500" />
-                  Listening voice dictation...
+                Listening to your voice...
                 </span>
               )}
             </div>
@@ -798,10 +798,10 @@ export function ComplaintFormPage() {
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span>Upload photo live camera or video</span>
+                <span>Upload photo or video from your device</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Attach visual evidence for AI-assisted validation & fast department routing
+                Attach a photo for verification and quick routing to the right team
               </p>
             </div>
 
@@ -830,7 +830,7 @@ export function ComplaintFormPage() {
                 }`}
               >
                 <Camera className="h-3.5 w-3.5" />
-                <span>Live Camera</span>
+                <span>Camera</span>
               </button>
             </div>
           </div>
@@ -904,7 +904,7 @@ export function ComplaintFormPage() {
                 Click to browse photo / video clip or drag & drop here
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Supports JPG, PNG, MP4, MOV (Max 50MB)
+                Supports photos and videos (JPG, PNG, MP4, MOV) up to 50MB
               </p>
             </label>
           )}
@@ -937,7 +937,7 @@ export function ComplaintFormPage() {
                 {isAnalyzingMedia ? (
                   <div className="flex items-center gap-2 text-xs font-bold text-blue-400">
                     <Cpu className="h-4 w-4 animate-spin text-blue-400" />
-                    <span>AI Computer Vision Analyzing Image Features...</span>
+                    <span>Analyzing your photo...</span>
                   </div>
                 ) : aiDetection ? (
                   <div className="flex items-center justify-between gap-2 text-xs">
@@ -967,7 +967,7 @@ export function ComplaintFormPage() {
               <span>Detect Live Location & Interactive Map</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Geo-tags exact municipal coordinates for on-ground field crew dispatch
+              Marks the exact location for our team to visit
             </p>
           </div>
 
@@ -988,7 +988,7 @@ export function ComplaintFormPage() {
                 {isLocating ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Detecting GPS Coordinates...</span>
+                    <span>Checking your location...</span>
                   </>
                 ) : (
                   <>
@@ -1056,7 +1056,7 @@ export function ComplaintFormPage() {
               </div>
 
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                💡 <span className="font-semibold text-slate-700 dark:text-slate-300">Tip:</span> You can drag the red marker on the right map to adjust the exact location pin.
+                💡 <span className="font-semibold text-slate-700 dark:text-slate-300">Tip:</span> You can move the red marker on the map to show the exact spot.
               </p>
             </div>
 

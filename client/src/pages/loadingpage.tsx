@@ -390,7 +390,7 @@ export function LoadingPage() {
                 </span>
               </div>
               <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition">
-                Multi-Modal Grievance System
+                Smart Problem Reporting System
               </h1>
             </div>
           </a>
@@ -491,7 +491,7 @@ export function LoadingPage() {
             className="inline-flex items-center gap-2 rounded-full border border-blue-400/40 bg-slate-950/85 px-4 py-1.5 text-xs font-bold text-blue-300 backdrop-blur-xl shadow-lg"
           >
             <Radio className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-            <span>JanSeva 2026 · Smart City AI Grievance & Predictive Analytics</span>
+            <span>JanSeva 2026 · Smart City Complaint System</span>
           </motion.div>
 
           {/* Main Hero Headline */}
@@ -508,7 +508,7 @@ export function LoadingPage() {
               </span>
             </h2>
             <p className="text-sm sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed drop-shadow">
-              Report municipal issues with real-time photo & video AI classification, GIS ward boundary routing, automated SLA dispatch, and predictive urban maintenance.
+              Report issues with photos or video. Our system automatically figures out which team should handle it, assigns them, and keeps you updated every step of the way.
             </p>
           </motion.div>
 
@@ -562,7 +562,7 @@ export function LoadingPage() {
               </div>
 
               <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-3.5 backdrop-blur-xl text-left shadow-lg">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Average Redressal</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Average Time to Fix</span>
                 <span className="text-lg sm:text-2xl font-black text-indigo-300">9.4 Hours</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5">-38% vs Manual</span>
               </div>
@@ -626,13 +626,13 @@ export function LoadingPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-4 group-hover:scale-110 transition">
                 <Cpu className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Multi-Modal AI Vision</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Multiple Ways to Report</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 Processes photos, videos, audio notes, and text reports to auto-classify department, estimate severity, and filter duplicate incidents instantly.
               </p>
               <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
                 <Check className="h-3.5 w-3.5 text-emerald-500" />
-                <span>YOLOv8 + NLP Triaging</span>
+                <span>Smart Analysis & Sorting</span>
               </div>
             </div>
 
@@ -643,7 +643,7 @@ export function LoadingPage() {
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Geospatial GIS Mapping</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Precise geo-tagging with ward boundary mapping ensures complaints land directly in the queue of the designated local field engineer.
+                Precise location mapping ensures your complaint goes directly to the right team.
               </p>
               <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                 <Check className="h-3.5 w-3.5 text-emerald-500" />
@@ -656,7 +656,7 @@ export function LoadingPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 mb-4 group-hover:scale-110 transition">
                 <BarChart3 className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Predictive Analytics</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Smart Issue Routing</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 Forecasts recurring infrastructure hot-spots (monsoon waterlogging, pipeline leaks, street-light faults) before citizen inconvenience occurs.
               </p>
@@ -671,13 +671,13 @@ export function LoadingPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-600/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 mb-4 group-hover:scale-110 transition">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Transparent Audit Trails</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Full Transparency</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Every grievance requires before/after photo verification from ward officers, citizen confirmation, and rating feedback before SLA closure.
+                Each complaint gets photos (before and after), approval from you, and a star rating to help improve service.
               </p>
               <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
                 <Check className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Zero-Tamper SLA Clock</span>
+                <span>Fair & Honest Process</span>
               </div>
             </div>
           </div>
@@ -721,7 +721,7 @@ export function LoadingPage() {
               How The Smart City Grievance Engine Works
             </h2>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-              From instant citizen capture to automated multi-modal AI dispatch, field engineer resolution, and citizen sign-off in 4 transparent steps.
+              From taking photos, to typing descriptions, to sending voice messages - then our system routes it, and the team fixes it, with you getting updates every step. Simple 4-step process.
             </p>
           </div>
 
@@ -748,7 +748,7 @@ export function LoadingPage() {
                 Citizen uploads a photo, video clip, or audio note. The app automatically tags GPS latitude, longitude, and ward code in seconds.
               </p>
               <span className="inline-block mt-4 text-[11px] font-bold text-blue-600 dark:text-blue-400">
-                Multi-Modal Input →
+                Different Ways to Report →
               </span>
             </div>
 
@@ -769,7 +769,7 @@ export function LoadingPage() {
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">AI Triaging & Deduplication</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Deep vision models classify category, check if this issue was already reported nearby to prevent duplicate queue flooding, and assign severity score.
+                Our system looks at your issue, checks if it's already been reported in your area, and assigns it the right priority level.
               </p>
               <span className="inline-block mt-4 text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
                 Automated NLP & Vision →
@@ -817,10 +817,10 @@ export function LoadingPage() {
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Audit & Citizen Sign-Off</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Field engineer uploads resolution proof photo. Citizen verifies and provides star rating, closing the loop and feeding predictive urban models.
+                Team member uploads a photo of the completed work. You check it and give a star rating to help improve the service.
               </p>
               <span className="inline-block mt-4 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                Verified Closure ✓
+                Work Complete & Confirmed ✓
               </span>
             </div>
           </div>
@@ -856,11 +856,11 @@ export function LoadingPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">JanSeva Smart City Governance</h4>
-                  <p className="text-[11px] text-slate-400">Real-Time Multi-Modal AI Redressal Platform</p>
+                  <p className="text-[11px] text-slate-400">Smart Problem Solving Platform</p>
                 </div>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-                Empowering transparent, AI-driven civic grievance resolution across municipal wards with verifiable audit trails, SLA compliance, and predictive infrastructure analytics.
+                Smart City Complaint System helping communities report and fix issues faster with clear tracking, fairness, and continuous improvement.
               </p>
               <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-semibold">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />

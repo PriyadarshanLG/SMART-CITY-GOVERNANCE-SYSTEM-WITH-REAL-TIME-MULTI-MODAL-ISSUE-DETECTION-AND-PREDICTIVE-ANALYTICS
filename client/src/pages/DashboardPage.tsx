@@ -211,7 +211,7 @@ export function DashboardPage() {
   const notifications = useMemo(() => {
     if (complaints.length === 0) {
       return [
-        { id: 1, text: '🟢 All queues clear. Smart City real-time issue monitoring active.', time: 'Just now', unread: false },
+        { id: 1, text: '🟢 All teams ready. Tracking complaints in real-time.', time: 'Just now', unread: false },
       ];
     }
     return complaints.slice(0, 3).map((c, i) => ({
@@ -370,7 +370,7 @@ export function DashboardPage() {
 
   // Handlers for Officer Actions
   const handleMarkOnProcess = async (complaintId: string) => {
-    await updateStatus(complaintId, 'Work In Progress', 'Field engineer dispatched to site. Repair machinery and crew active.');
+    await updateStatus(complaintId, 'Work In Progress', 'Team dispatched to fix the issue. Work is now underway.');
   };
 
   const handleWorkDoneFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -442,7 +442,7 @@ export function DashboardPage() {
 
   // Admin Quick Action: Issue Notice to Officer
   const handleIssueNotice = (complaintId: string, deptName: string) => {
-    setAdminNoticeSuccess(`Official Executive Notice dispatched to ${deptName} regarding ticket #${complaintId}.`);
+    setAdminNoticeSuccess(`Official notice sent to ${deptName} about ticket #${complaintId}.`);
     setTimeout(() => setAdminNoticeSuccess(''), 3000);
   };
 
@@ -703,7 +703,7 @@ export function DashboardPage() {
 
             <div className="col-span-2 sm:col-span-1 rounded-2xl border border-indigo-900/30 bg-indigo-950/20 p-4">
               <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">
-                🎯 SLA Resolution Rate
+                🎯 How Fast Issues Get Fixed
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-indigo-400">{overallResolutionRate}%</span>
@@ -760,7 +760,7 @@ export function DashboardPage() {
                         <span className="text-xs font-mono font-black text-emerald-400 block">
                           {dept.resolutionRate}%
                         </span>
-                        <span className="text-[10px] text-slate-500 uppercase">Resolution</span>
+                        <span className="text-[10px] text-slate-500 uppercase">Speed</span>
                       </div>
                     </div>
 
@@ -1056,7 +1056,7 @@ export function DashboardPage() {
                             {item.resolvedImageUrl && (
                               <span className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2.5 py-1 rounded-xl font-bold">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                <span>Officer Work-Done Photo Verified</span>
+                                <span>Team Completed & Verified Work</span>
                               </span>
                             )}
                           </div>
@@ -1363,7 +1363,7 @@ export function DashboardPage() {
                   <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xl z-50 animate-in fade-in duration-150">
                     <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">Department Alerts</span>
-                      <span className="text-[10px] text-slate-400">Live SLA Queue</span>
+                      <span className="text-[10px] text-slate-400">Queue</span>
                     </div>
                     <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
                       {notifications.map((n) => (
@@ -2018,7 +2018,7 @@ export function DashboardPage() {
         <div className="overflow-hidden flex-1 relative flex items-center z-10">
           <div className="animate-marquee text-xs font-mono font-bold text-amber-300 dark:text-amber-200 tracking-wide">
             <span>🚨 HEAVY RAINFALL WARNING: Emergency response crews deployed for Ward 04 & Central Market sector &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
-            <span>⚡ LIVE SLA MONITORING: All civic complaints automatically routed to designated Ward Engineers with 24-hr resolution tracking &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
+            <span>⚡ LIVE TRACKING: All complaints are automatically sent to the right team and tracked within 24 hours &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
             <span>📞 MUNICIPAL HELPLINE: Toll-free 24/7 hotline 1800-425-2026 active for emergency flood & power outage reports &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
             <span>🌾 AGRICULTURE ADVISORY: Coconut & Paddy crop fungal rot diagnostic advisory active for Hassan district farmers</span>
           </div>
@@ -2049,7 +2049,7 @@ export function DashboardPage() {
                 </h2>
 
                 <p className="hero-subtext">
-                  Real-time multi-department issue detection, GPS geo-tagging, and 5-day SLA escalation monitoring.
+                  Real-time tracking of complaints from all departments with location tagging and escalation if taking too long.
                 </p>
               </div>
 

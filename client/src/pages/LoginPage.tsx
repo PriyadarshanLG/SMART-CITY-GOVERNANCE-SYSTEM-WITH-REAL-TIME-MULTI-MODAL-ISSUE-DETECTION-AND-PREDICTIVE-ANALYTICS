@@ -119,7 +119,7 @@ export function LoginPage() {
           </div>
 
           <div className="mt-8 pt-4 border-t border-slate-200 text-[10px] text-slate-500 dark:border-slate-800">
-            <p>Protected by 256-bit TLS Encryption & National Cyber Security Guidelines.</p>
+            <p>Your account is protected with advanced security standards.</p>
           </div>
         </div>
 

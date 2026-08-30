@@ -104,8 +104,8 @@ export function HomePage() {
 
   const stats: StatCard[] = [
     { label: 'Total Grievances', value: liveStats.total.toLocaleString(), change: '+12% this month', isPositive: true, icon: TrendingUp },
-    { label: 'Cases Resolved', value: liveStats.resolved.toLocaleString(), change: `${liveStats.slaRate}% SLA rate`, isPositive: true, icon: CheckCircle2 },
-    { label: 'Under Work Queue', value: liveStats.inProgress.toLocaleString(), change: 'Live field queue', isPositive: true, icon: BellRing },
+    { label: 'Cases Fixed', value: liveStats.resolved.toLocaleString(), change: `${liveStats.slaRate}% completion rate`, isPositive: true, icon: CheckCircle2 },
+    { label: 'Being Worked On', value: liveStats.inProgress.toLocaleString(), change: 'Currently in progress', isPositive: true, icon: BellRing },
     { label: 'Enrolled Citizens', value: '61,204', change: '+240 today', isPositive: true, icon: Users },
   ];
 
@@ -115,16 +115,16 @@ export function HomePage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="gov-badge">GIS Intelligence & Analytics Hub</span>
+            <span className="gov-badge">Dashboard & Reports</span>
             <span className="pill text-[10px]">
-              <Radio className="h-3 w-3 text-emerald-500 animate-pulse" /> Live Telemetry
+              <Radio className="h-3 w-3 text-emerald-500 animate-pulse" /> Live Updates
             </span>
           </div>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
             Civic Quality & Regional Operations
           </h1>
           <p className="mt-2 max-w-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-            Real-time municipal operations surface for grievance intake, SLA resolution timelines, and interactive ward telemetry.
+            Live updates on complaints filed, how quickly they're being fixed, and neighborhood activity.
           </p>
         </div>
 
@@ -188,8 +188,8 @@ export function HomePage() {
         <div className="surface-card p-6 md:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
             <div>
-              <p className="section-kicker">Resolution Velocity</p>
-              <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Incidents vs Redressal Velocity</h2>
+              <p className="section-kicker">How Fast Things Get Fixed</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Complaints & How Fast They're Fixed</h2>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
               <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Filed</span>
@@ -265,7 +265,7 @@ export function HomePage() {
               <Map className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
                 <p className="section-kicker">Interactive GIS Grid</p>
-                <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Ward Map & Officer Dispatch</h2>
+                <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">Neighborhoods & Team Updates</h2>
               </div>
             </div>
             <span className="pill text-[11px]">
@@ -304,7 +304,7 @@ export function HomePage() {
                   <span className="font-bold text-slate-900 dark:text-white">{selectedWard.officer}</span>
                 </div>
                 <div className="mt-2 flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Avg Resolution Time</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Average Time to Fix</span>
                   <span className="font-bold text-blue-600 dark:text-blue-400">{selectedWard.responseTime}</span>
                 </div>
                 <div className="mt-2 flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
