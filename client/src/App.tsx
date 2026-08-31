@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { LandingPage } from './pages/LandingPage';
@@ -11,6 +12,7 @@ import { DashboardPage } from './pages/DashboardPage';
 export default function App() {
   return (
     <AuthProvider>
+      <LanguageProvider>
       <Routes>
         {/* Opening Interface of the Website with integrated Login & Registration */}
         <Route path="/" element={<LoadingPage />} />
@@ -25,6 +27,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

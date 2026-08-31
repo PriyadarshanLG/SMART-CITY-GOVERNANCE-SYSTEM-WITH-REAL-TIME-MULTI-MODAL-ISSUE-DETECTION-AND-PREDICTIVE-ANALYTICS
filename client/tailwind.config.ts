@@ -7,6 +7,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

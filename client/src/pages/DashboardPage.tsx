@@ -57,6 +57,9 @@ import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useComplaints, seedSampleComplaintsForDemo, clearAllComplaints } from '../lib/complaintsStore';
 import type { ComplaintRecord } from '../types/complaint';
+import { WeatherWidget } from '../components/common/WeatherWidget';
+import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
+import { useLanguage } from '../context/LanguageContext';
 
 export const ALL_DEPARTMENTS = [
   'Public Works Department (PWD)',
@@ -127,6 +130,7 @@ export function DashboardPage() {
   const { role } = useParams<{ role: string }>();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const { complaints, updateStatus, transferComplaint } = useComplaints();
 
   // Distinguish Active Role
@@ -486,6 +490,7 @@ export function DashboardPage() {
 
             {/* Right: Department Filter Tabs + Theme + Notifications + Sign Out */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <LanguageSwitcher variant="dark" />
               {/* Button 1: Report Complaint */}
               <button
                 type="button"
@@ -493,7 +498,7 @@ export function DashboardPage() {
                 className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">+ Report Grievance</span>
+                <span className="hidden sm:inline">{t('admin.report')}</span>
               </button>
 
               {/* Button 2: Quick Demo Data Toggle */}
@@ -1294,6 +1299,7 @@ export function DashboardPage() {
 
             {/* Right: Notifications & Actions */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <LanguageSwitcher variant="dark" />
               {/* Button 1: Report Complaint */}
               <button
                 type="button"
@@ -1301,7 +1307,7 @@ export function DashboardPage() {
                 className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">+ Report Grievance</span>
+                <span className="hidden sm:inline">{t('admin.report')}</span>
               </button>
 
               {/* Button 2: Quick Demo Data Toggle */}
@@ -1893,111 +1899,109 @@ export function DashboardPage() {
   // Right Column: Recent complaints of the city
   // =========================================================================
   return (
-    <div className="dashboard-shell min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
+    <div className="dashboard-shell min-h-screen w-full bg-[#eef1f6] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
       {/* Top Government Accent Strip */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
+      <div className="h-1 w-full bg-gradient-to-r from-orange-600 via-white to-emerald-600" />
 
       {/* ------------------------------------------------------------------- */}
       {/* CITIZEN HEADER (Clean Single-Row Layout: Branding | Nav Items | Profile, Sun/Moon, Logout) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="dashboard-panel sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8 gap-3 flex-wrap">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-[#0c2744] text-white shadow-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:px-8 gap-4 flex-wrap">
           {/* Left: Branding & City Info */}
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold shadow-md shadow-blue-500/25">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-white/15 text-white shrink-0 transition hover:bg-white/20 hover:scale-105">
               <Building2 className="h-5 w-5" />
             </div>
 
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="hero-brand text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
-                  JanSeva · Citizen Portal
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-300">
+                      JanSeva · Citizen Portal
                 </span>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 live-dot" />
               </div>
-              <h1 className="display-heading text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                {userCity} City Grievance Redressal
+              <h1 className="text-sm sm:text-[15px] font-semibold text-white leading-tight">
+                {t('brand.cityGrievance', { city: userCity })}
               </h1>
             </div>
           </div>
 
           {/* Center/Right Navigation Bar per Wireframe Sketch */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-bold">
-            {/* Nav Item 1: Overview */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('overview')}
-              className={`px-3 py-1.5 rounded-xl transition ${
-                activeTab === 'overview'
-                  ? 'bg-blue-600 text-white shadow-sm font-extrabold'
-                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900'
-              }`}
-            >
-              Overview
-            </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-1 rounded-xl bg-white/10 p-1 border border-white/10">
+              <button
+                type="button"
+                onClick={() => setActiveTab('overview')}
+                className={`nav-chip px-3.5 py-1.5 rounded-lg text-xs font-semibold ${
+                  activeTab === 'overview'
+                    ? 'bg-white text-[#0c2744] shadow-sm'
+                    : 'text-slate-200 hover:bg-white/10'
+                }`}
+              >
+                {t('nav.overview')}
+              </button>
 
-            {/* Nav Item 2: Complaints */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('overview');
-                const el = document.getElementById('recent-complaints-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
-            >
-              Complaints
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('overview');
+                  const el = document.getElementById('recent-complaints-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="nav-chip px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:bg-white/10"
+              >
+                {t('nav.complaints')}
+              </button>
 
-            {/* Nav Item 3: Tracking ID */}
-            <button
-              type="button"
-              onClick={() => setIsTrackModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition flex items-center gap-1"
-            >
-              <Search className="h-3.5 w-3.5 text-blue-500" />
-              <span>Tracking ID</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setIsTrackModalOpen(true)}
+                className="nav-chip px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:bg-white/10 flex items-center gap-1.5"
+              >
+                <Search className="h-3.5 w-3.5 text-orange-300" />
+                <span>{t('nav.trackingId')}</span>
+              </button>
+            </div>
 
-            {/* Nav Item 4: Emergency Helpline Number */}
             <a
               href="tel:18004252026"
-              className="px-3 py-1.5 rounded-xl text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition flex items-center gap-1 shrink-0 font-extrabold"
+              className="helpline-glow inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-orange-500 text-white hover:bg-orange-400 transition shrink-0"
               title="Toll-Free Emergency Grievance Helpline"
             >
-              <PhoneCall className="h-3.5 w-3.5 text-amber-500" />
-              <span>Helpline: 1800-425-2026</span>
+              <PhoneCall className="h-3.5 w-3.5" />
+              <span>{t('nav.helpline')}</span>
             </a>
 
-            {/* Nav Item 5: Profile (Beside Helpline Number) */}
+            {/* Prominent Multi-Language Switcher (EN / ಕನ್ನಡ) */}
+            <LanguageSwitcher variant="dark" />
+
             <button
               type="button"
               onClick={() => setIsProfileModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-white/20 bg-white/5 text-white hover:bg-white/10 transition"
               title="View Citizen Profile & Municipal Registration"
             >
-              <User className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Profile</span>
+              <User className="h-3.5 w-3.5 text-orange-300" />
+              <span>{t('nav.profile')}</span>
             </button>
 
-            {/* Nav Item 6: Sun/Moon Theme Switcher (Beside Helpline Number) */}
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/5 text-white hover:bg-white/10 transition"
               title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
+              {darkMode ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-200" />}
             </button>
 
-            {/* Nav Item 7: Sign Out Symbol (Beside Helpline Number) */}
             <button
               type="button"
               onClick={() => {
                 logout();
                 navigate('/');
               }}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 text-red-200 hover:bg-red-500/25 transition"
               title="Sign Out"
             >
               <LogOut className="h-4 w-4" />
@@ -2009,18 +2013,34 @@ export function DashboardPage() {
       {/* ------------------------------------------------------------------- */}
       {/* HIGH-VISIBILITY DIMMED RED SCROLLING ALERT TICKER LINE BELOW HEADER */}
       {/* ------------------------------------------------------------------- */}
-      <div className="w-full bg-slate-950 dark:bg-slate-950/95 border-y border-red-500/40 py-2.5 px-4 shadow-lg flex items-center gap-3 overflow-hidden backdrop-blur-md">
-        <div className="flex items-center gap-1.5 shrink-0 bg-gradient-to-r from-red-600 to-rose-700 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md shadow-red-600/30 z-20">
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
-          <span>URGENT ALERTS</span>
+      <div className="w-full bg-[#071527] border-b border-white/10 py-2 px-4 flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-1.5 shrink-0 bg-orange-500 text-white px-3 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider z-20">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          <span>{t('alerts')}</span>
         </div>
 
         <div className="overflow-hidden flex-1 relative flex items-center z-10">
-          <div className="animate-marquee text-xs font-mono font-bold text-amber-300 dark:text-amber-200 tracking-wide">
-            <span>🚨 HEAVY RAINFALL WARNING: Emergency response crews deployed for Ward 04 & Central Market sector &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
-            <span>⚡ LIVE TRACKING: All complaints are automatically sent to the right team and tracked within 24 hours &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
-            <span>📞 MUNICIPAL HELPLINE: Toll-free 24/7 hotline 1800-425-2026 active for emergency flood & power outage reports &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
-            <span>🌾 AGRICULTURE ADVISORY: Coconut & Paddy crop fungal rot diagnostic advisory active for Hassan district farmers</span>
+          <div className="animate-marquee flex items-center gap-6 text-xs font-semibold text-slate-200 tracking-wide">
+            <div className="flex items-center gap-6 shrink-0">
+              <span>🚨 {t('alert.rain')}</span>
+              <span>•</span>
+              <span>⚡ {t('alert.track')}</span>
+              <span>•</span>
+              <span>📞 {t('alert.helpline')}</span>
+              <span>•</span>
+              <span>🌾 {t('alert.agri')}</span>
+              <span>•</span>
+            </div>
+            <div className="flex items-center gap-6 shrink-0">
+              <span>🚨 {t('alert.rain')}</span>
+              <span>•</span>
+              <span>⚡ {t('alert.track')}</span>
+              <span>•</span>
+              <span>📞 {t('alert.helpline')}</span>
+              <span>•</span>
+              <span>🌾 {t('alert.agri')}</span>
+              <span>•</span>
+            </div>
           </div>
         </div>
       </div>
@@ -2031,90 +2051,125 @@ export function DashboardPage() {
       <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 space-y-6">
         
         {/* ------------------------------------------------------------------- */}
-        {/* UNIFIED COMPACT WELCOME BOX WITH BORDERLESS MAP (~40% WIDTH)        */}
+        {/* STANDALONE WELCOME BOX & STANDALONE WEATHER BOX (OUTSIDE SIDE-BY-SIDE) */}
         {/* ------------------------------------------------------------------- */}
-        <div className="hero-shell p-5 sm:p-6 text-white">
-          <div className="hero-content flex flex-col lg:flex-row lg:items-center justify-between gap-5 lg:gap-8">
-            <div className="flex-1 space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="hero-brand text-[10px] font-black uppercase tracking-[0.22em] text-blue-100">
-                    JanSeva · Citizen Portal
-                  </span>
-                  <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          className="flex flex-col lg:flex-row items-stretch gap-5"
+        >
+          {/* Left: Standalone Welcome Box */}
+          <div className="flex-1 min-w-0">
+            <div className="hero-shell pl-6 pr-5 py-6 sm:pl-8 sm:pr-6 sm:py-7 h-full flex flex-col justify-center">
+              <div className="hero-content flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="hero-brand text-[10px] font-semibold uppercase">
+                      {t('brand.portal')}
+                    </span>
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 live-dot" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                      {t('hero.welcomeBack')}
+                    </p>
+                    <h2 className="hero-title">
+                      {user?.name || t('citizen')}
+                    </h2>
+                  </div>
+
+                  <p className="hero-subtext">
+                    {t('hero.body')}
+                  </p>
+
+                  <div className="pt-1 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/report')}
+                      className="hero-cta-primary"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      <span>{t('hero.report')}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsTrackModalOpen(true)}
+                      className="hero-cta-secondary"
+                    >
+                      <Search className="h-4 w-4 text-slate-500" />
+                      <span>{t('hero.trackToken')}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <h2 className="hero-title text-white">
-                  Welcome back, {user?.name || 'Citizen'} 👋
-                </h2>
+                <div className="w-full sm:w-[270px] lg:w-[290px] shrink-0 flex justify-end">
+                  <div className="map-panel relative group w-full h-[180px] sm:h-[195px] lg:h-[210px]">
+                    <iframe
+                      title="Live Citizen Map"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      marginHeight={0}
+                      marginWidth={0}
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${liveCoords.lng - 0.015},${liveCoords.lat - 0.015},${liveCoords.lng + 0.015},${liveCoords.lat + 0.015}&layer=mapnik&marker=${liveCoords.lat},${liveCoords.lng}`}
+                      className="w-full h-full"
+                    />
 
-                <p className="hero-subtext">
-                  Real-time tracking of complaints from all departments with location tagging and escalation if taking too long.
-                </p>
-              </div>
+                    <div className="map-badge">
+                      <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span>{t('map.live')}</span>
+                    </div>
 
-              <div className="pt-1 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate('/report')}
-                  className="hero-cta-primary"
-                >
-                  <PlusCircle className="h-5 w-5" />
-                  <span>Report New Grievance</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsTrackModalOpen(true)}
-                  className="hero-cta-secondary"
-                >
-                  <Search className="h-4 w-4 text-blue-200" />
-                  <span>Track Token</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="w-full lg:w-[42%] shrink-0 flex justify-end">
-              <div className="map-panel relative group">
-                <iframe
-                  title="Live Citizen Map"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  marginHeight={0}
-                  marginWidth={0}
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${liveCoords.lng - 0.015},${liveCoords.lat - 0.015},${liveCoords.lng + 0.015},${liveCoords.lat + 0.015}&layer=mapnik&marker=${liveCoords.lat},${liveCoords.lng}`}
-                  className="w-full h-full opacity-95 group-hover:opacity-100 transition"
-                />
-
-                <div className="map-badge">
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Live Location</span>
+                    <button
+                      type="button"
+                      onClick={handleDetectLiveGPS}
+                      className="map-button"
+                      title="Detect Current Location"
+                    >
+                      <LocateFixed className="h-3 w-3 text-sky-300" />
+                      <span>{isDetectingGPS ? t('map.detecting') : t('map.detect')}</span>
+                    </button>
+                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleDetectLiveGPS}
-                  className="map-button"
-                  title="Detect Current Location"
-                >
-                  <LocateFixed className="h-3 w-3 text-blue-300" />
-                  <span>{isDetectingGPS ? 'Detecting...' : 'Detect'}</span>
-                </button>
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Right: Standalone Live Weather (Top) & Yellow Help Desk (Bottom) Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.12, ease: 'easeOut' }}
+            className="w-full lg:w-[320px] shrink-0 flex flex-col justify-stretch"
+          >
+            <WeatherWidget
+              lat={liveCoords.lat}
+              lng={liveCoords.lng}
+              onLocationUpdate={(newLat, newLng) => {
+                setLiveCoords({ lat: newLat, lng: newLng });
+                setLiveAddress(`Central Hassan Sector (Lat ${newLat.toFixed(4)}°, Lng ${newLng.toFixed(4)}°)`);
+              }}
+            />
+          </motion.div>
+        </motion.div>
 
         {/* Two Columns per Sketch */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+        >
           
           {/* Left Column: Actions & District Summary */}
           <div className="lg:col-span-5 space-y-4">
             
             {/* District Summary */}
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-5">
+            <div className="glass-card p-6 space-y-5">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
@@ -2122,48 +2177,48 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h4 className="text-base font-black text-slate-900 dark:text-white">
-                      📍 {userDistrict} District
+                      📍 {t('district.title', { district: userDistrict })}
                     </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Local Jurisdiction Statistics</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{t('district.sub')}</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+                <div className="stat-row flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 font-bold">
                       <FileText className="h-4 w-4" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">No. of complaints register</span>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Total logged in {userDistrict}</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t('district.registered')}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">{t('district.logged', { district: userDistrict })}</span>
                     </div>
                   </div>
                   <span className="text-2xl font-black text-blue-600 dark:text-blue-400">{districtComplaints.length}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40">
+                <div className="stat-row flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 font-bold">
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 block">Solved</span>
-                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400">Redressed & verified cases</span>
+                      <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 block">{t('district.solved')}</span>
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400">{t('district.solvedSub')}</span>
                     </div>
                   </div>
                   <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{solvedCount}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40">
+                <div className="stat-row flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 font-bold">
                       <Clock className="h-4 w-4" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block">Ongoing</span>
-                      <span className="text-[10px] text-amber-700 dark:text-amber-400">Assigned to field officers</span>
+                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block">{t('district.ongoing')}</span>
+                      <span className="text-[10px] text-amber-700 dark:text-amber-400">{t('district.ongoingSub')}</span>
                     </div>
                   </div>
                   <span className="text-2xl font-black text-amber-600 dark:text-amber-400">{ongoingCount}</span>
@@ -2172,7 +2227,7 @@ export function DashboardPage() {
             </div>
 
             {/* Right Side Pin Location Widget per Sketch */}
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4">
+            <div className="glass-card p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
@@ -2180,9 +2235,9 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                      📍 Pin Location & Live GPS
+                      📍 {t('gps.title')}
                     </h4>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Smart Ward Municipal Geofence</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">{t('gps.sub')}</p>
                   </div>
                 </div>
                 <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
@@ -2190,7 +2245,7 @@ export function DashboardPage() {
 
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3.5 space-y-2 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-slate-500 dark:text-slate-400">Active Jurisdiction:</span>
+                  <span className="font-bold text-slate-500 dark:text-slate-400">{t('gps.jurisdiction')}</span>
                   <span className="font-black text-blue-600 dark:text-blue-400">{userCity}, Ward 04</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] font-mono text-slate-500 dark:text-slate-400">
@@ -2198,9 +2253,9 @@ export function DashboardPage() {
                   <span>Lng: 76.1018° E</span>
                 </div>
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Geofence Status:</span>
+                  <span className="text-slate-500">{t('gps.geofence')}</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <Radio className="h-3 w-3 animate-pulse" /> Live Active
+                    <Radio className="h-3 w-3 animate-pulse" /> {t('gps.live')}
                   </span>
                 </div>
               </div>
@@ -2209,27 +2264,27 @@ export function DashboardPage() {
 
           {/* Right Column: Recent Complaints of the City */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4">
+            <div id="recent-complaints-section" className="glass-card p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                   <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>Recent complaints of the city</span>
+                    <span>{t('recent.title')}</span>
                     <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-500/20">
                       📍 {userCity}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Grievances filed by citizens in your locality & their live redressal state
+                    {t('recent.sub')}
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => navigate('/report')}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition shrink-0 shadow-sm"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition shrink-0 shadow-sm shadow-blue-500/20"
                 >
                   <PlusCircle className="h-3.5 w-3.5" />
-                  <span>File Issue</span>
+                  <span>{t('recent.fileIssue')}</span>
                 </button>
               </div>
 
@@ -2271,10 +2326,10 @@ export function DashboardPage() {
                     // Ongoing = Yellow / Amber (25% transparency)
                     // Completed / Solved = Green (25% transparency)
                     const cardBgStyle = isSolved
-                      ? 'bg-emerald-500/25 dark:bg-emerald-950/40 border-emerald-500/40 hover:border-emerald-500/80 shadow-emerald-500/5'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/35 border-emerald-200 dark:border-emerald-800/60 hover:border-emerald-400'
                       : isOngoing
-                      ? 'bg-amber-500/25 dark:bg-amber-950/40 border-amber-500/40 hover:border-amber-500/80 shadow-amber-500/5'
-                      : 'bg-red-500/25 dark:bg-red-950/40 border-red-500/40 hover:border-red-500/80 shadow-red-500/5';
+                      ? 'bg-amber-50 dark:bg-amber-950/35 border-amber-200 dark:border-amber-800/60 hover:border-amber-400'
+                      : 'bg-rose-50 dark:bg-rose-950/35 border-rose-200 dark:border-rose-800/60 hover:border-rose-400';
 
                     const statusPillStyle = isSolved
                       ? 'bg-emerald-600 text-white border-emerald-400/40 font-black'
@@ -2295,7 +2350,7 @@ export function DashboardPage() {
                       <div
                         key={item.complaintId}
                         onClick={() => navigate(`/complaints/${item.complaintId}`)}
-                        className={`rounded-2xl border p-3.5 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group ${cardBgStyle}`}
+                        className={`complaint-row rounded-2xl border p-3.5 shadow-sm hover:shadow-lg cursor-pointer group ${cardBgStyle}`}
                       >
                         <div className="flex items-center gap-3">
                           
@@ -2337,7 +2392,7 @@ export function DashboardPage() {
                             <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 pt-1 border-t border-slate-900/10 dark:border-white/10">
                               <span className="font-semibold truncate">📍 {item.location?.area || 'Central Area'}</span>
                               <div className="flex items-center gap-1 text-slate-900 dark:text-white font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition shrink-0">
-                                <span>Track Progress</span>
+                                <span>{t('track.progress')}</span>
                                 <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                               </div>
                             </div>
@@ -2351,7 +2406,7 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </main>
 
       {/* Citizen Track Modal */}
@@ -2380,7 +2435,7 @@ export function DashboardPage() {
                 <X className="h-4 w-4" />
               </button>
 
-              <h3 className="text-base font-black text-slate-900 dark:text-white">Track Grievance Status</h3>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">{t('track.title')}</h3>
               <div className="relative">
                 <input
                   type="text"
