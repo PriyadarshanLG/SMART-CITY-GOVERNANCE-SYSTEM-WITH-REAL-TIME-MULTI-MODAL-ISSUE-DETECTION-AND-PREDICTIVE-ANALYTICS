@@ -16,6 +16,7 @@ import {
   Droplets,
 } from 'lucide-react';
 import { HelpDeskModal } from './HelpDeskModal';
+import { fetchLiveAddress, getCurrentPositionAsync } from '../../lib/geoHelper';
 
 interface WeatherData {
   temp: number;
@@ -129,19 +130,9 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
       });
 
       try {
-        const geoRes = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
-        );
-        if (geoRes.ok) {
-          const geoData = await geoRes.json();
-          const city =
-            geoData.address?.city ||
-            geoData.address?.town ||
-            geoData.address?.suburb ||
-            geoData.address?.district ||
-            'Hassan';
-          const state = geoData.address?.state || 'Karnataka';
-          setLocationName(`${city}, ${state}`);
+        const geoInfo = await fetchLiveAddress(latitude, longitude);
+        if (geoInfo.shortLocation) {
+          setLocationName(geoInfo.shortLocation);
         }
       } catch {
         // Keep default
@@ -166,23 +157,12 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
     fetchWeather(currentCoords.lat, currentCoords.lng);
   }, [currentCoords.lat, currentCoords.lng]);
 
-  const handleDetectLocation = () => {
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      setIsDetecting(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setIsDetecting(false);
-          const newLat = pos.coords.latitude;
-          const newLng = pos.coords.longitude;
-          setCurrentCoords({ lat: newLat, lng: newLng });
-          if (onLocationUpdate) onLocationUpdate(newLat, newLng);
-        },
-        () => {
-          setIsDetecting(false);
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    }
+  const handleDetectLocation = async () => {
+    setIsDetecting(true);
+    const pos = await getCurrentPositionAsync();
+    setIsDetecting(false);
+    setCurrentCoords({ lat: pos.lat, lng: pos.lng });
+    if (onLocationUpdate) onLocationUpdate(pos.lat, pos.lng);
   };
 
   const parsed = weather ? parseWeatherCode(weather.weatherCode, weather.windSpeed) : null;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useState, useRef, type FormEvent, type ChangeEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -26,6 +26,7 @@ import {
   Sparkles,
   MapPinned,
   Radio,
+  Navigation,
   FileText,
   Check,
   X,
@@ -59,7 +60,10 @@ import { useComplaints, seedSampleComplaintsForDemo, clearAllComplaints } from '
 import type { ComplaintRecord } from '../types/complaint';
 import { WeatherWidget } from '../components/common/WeatherWidget';
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
+import { LocationMapCard } from '../components/common/LocationMapCard';
 import { useLanguage } from '../context/LanguageContext';
+import { fetchLiveAddress, getCurrentPositionAsync } from '../lib/geoHelper';
+import { useDepartmentAlerts } from '../lib/alertsStore';
 
 export const ALL_DEPARTMENTS = [
   'Public Works Department (PWD)',
@@ -132,6 +136,7 @@ export function DashboardPage() {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { complaints, updateStatus, transferComplaint } = useComplaints();
+  const { alerts, broadcastAlert } = useDepartmentAlerts();
 
   // Distinguish Active Role
   const activeRole = (role ?? 'citizen').toLowerCase();
@@ -172,43 +177,149 @@ export function DashboardPage() {
   // Live GPS Map States for Citizen Dashboard
   const [liveCoords, setLiveCoords] = useState<{ lat: number; lng: number }>({ lat: 13.0042, lng: 76.1018 });
   const [liveAddress, setLiveAddress] = useState<string>('Central Ring Road, Hassan, Karnataka');
+  const [detectedCity, setDetectedCity] = useState<string>('');
+  const [detectedDistrict, setDetectedDistrict] = useState<string>('');
+  const [detectedState, setDetectedState] = useState<string>('');
   const [isDetectingGPS, setIsDetectingGPS] = useState(false);
 
-  const handleDetectLiveGPS = () => {
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      setIsDetectingGPS(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setIsDetectingGPS(false);
-          const newLat = pos.coords.latitude;
-          const newLng = pos.coords.longitude;
-          setLiveCoords({ lat: newLat, lng: newLng });
-          setLiveAddress(`Central Hassan Sector (Lat ${newLat.toFixed(4)}°, Lng ${newLng.toFixed(4)}°)`);
-        },
-        () => {
-          setIsDetectingGPS(false);
-          setLiveCoords({ lat: 13.0042, lng: 76.1018 });
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    }
+  const handleDetectLiveGPS = async () => {
+    setIsDetectingGPS(true);
+    const pos = await getCurrentPositionAsync();
+    setLiveCoords({ lat: pos.lat, lng: pos.lng });
+    const geoInfo = await fetchLiveAddress(pos.lat, pos.lng);
+    setLiveAddress(geoInfo.fullAddress || geoInfo.shortLocation);
+    if (geoInfo.city) setDetectedCity(geoInfo.city);
+    if (geoInfo.district) setDetectedDistrict(geoInfo.district);
+    if (geoInfo.state) setDetectedState(geoInfo.state);
+    setIsDetectingGPS(false);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    void (async () => {
+      setIsDetectingGPS(true);
+      const pos = await getCurrentPositionAsync();
+      if (!isMounted) return;
+      setLiveCoords({ lat: pos.lat, lng: pos.lng });
+      const geoInfo = await fetchLiveAddress(pos.lat, pos.lng);
+      if (!isMounted) return;
+      if (geoInfo.fullAddress) setLiveAddress(geoInfo.fullAddress);
+      if (geoInfo.city) setDetectedCity(geoInfo.city);
+      if (geoInfo.district) setDetectedDistrict(geoInfo.district);
+      if (geoInfo.state) setDetectedState(geoInfo.state);
+      setIsDetectingGPS(false);
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Department Dashboard States (Per Sketch: Complaints, Details, Completed + Share Image, Other Complaints + Push)
   const [selectedComplaintId, setSelectedComplaintId] = useState<string>('');
 
-  // Completed Modal & Share Image of Work Done
+  // Completed Modal & Dual Photo Upload (Upload Photo vs Live Camera Snapshot)
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [workDoneImage, setWorkDoneImage] = useState<string | null>(null);
   const [workDoneRemarks, setWorkDoneRemarks] = useState('');
+  const [workDoneMediaMode, setWorkDoneMediaMode] = useState<'upload' | 'camera'>('upload');
+  const [isWorkDoneCameraActive, setIsWorkDoneCameraActive] = useState(false);
+  const [workDoneCameraError, setWorkDoneCameraError] = useState('');
+  const workDoneVideoRef = useRef<HTMLVideoElement | null>(null);
+
   const [isSubmittingCompletion, setIsSubmittingCompletion] = useState(false);
   const [completionSuccess, setCompletionSuccess] = useState('');
+  const [onProcessSuccessMsg, setOnProcessSuccessMsg] = useState('');
+
+  const startWorkDoneCamera = async () => {
+    setWorkDoneCameraError('');
+    try {
+      if (workDoneVideoRef.current && workDoneVideoRef.current.srcObject) {
+        const stream = workDoneVideoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      if (workDoneVideoRef.current) {
+        workDoneVideoRef.current.srcObject = stream;
+        await workDoneVideoRef.current.play();
+        setIsWorkDoneCameraActive(true);
+      }
+    } catch {
+      setWorkDoneCameraError('Camera access denied or unavailable. Please use file upload option.');
+      setIsWorkDoneCameraActive(false);
+    }
+  };
+
+  const stopWorkDoneCamera = () => {
+    if (workDoneVideoRef.current && workDoneVideoRef.current.srcObject) {
+      const stream = workDoneVideoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      workDoneVideoRef.current.srcObject = null;
+    }
+    setIsWorkDoneCameraActive(false);
+  };
+
+  useEffect(() => {
+    if (isCompleteModalOpen && workDoneMediaMode === 'camera') {
+      void startWorkDoneCamera();
+    } else {
+      stopWorkDoneCamera();
+    }
+    return () => {
+      stopWorkDoneCamera();
+    };
+  }, [isCompleteModalOpen, workDoneMediaMode]);
+
+  const snapWorkDonePhoto = () => {
+    if (!workDoneVideoRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = workDoneVideoRef.current.videoWidth || 640;
+    canvas.height = workDoneVideoRef.current.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(workDoneVideoRef.current, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      setWorkDoneImage(dataUrl);
+      stopWorkDoneCamera();
+      setWorkDoneMediaMode('upload');
+    }
+  };
 
   // Push to Respective Department State
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [targetPushDept, setTargetPushDept] = useState<string>('Municipal Corporation');
   const [targetPushComplaint, setTargetPushComplaint] = useState<ComplaintRecord | null>(null);
   const [pushSuccessMsg, setPushSuccessMsg] = useState('');
+
+  // Broadcast Department Alert Modal State (Allows every department to share alert messages to citizens)
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [newAlertDept, setNewAlertDept] = useState<string>(selectedDepartment || 'Public Works Department (PWD)');
+  const [newAlertIcon, setNewAlertIcon] = useState<string>('🚨');
+  const [newAlertCategory, setNewAlertCategory] = useState<'warning' | 'emergency' | 'advisory' | 'info'>('warning');
+  const [newAlertMessage, setNewAlertMessage] = useState<string>('');
+  const [alertPostSuccess, setAlertPostSuccess] = useState<string>('');
+
+  const handlePostDepartmentAlert = (e?: FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newAlertMessage.trim()) return;
+
+    broadcastAlert({
+      department: newAlertDept,
+      icon: newAlertIcon,
+      category: newAlertCategory,
+      message: newAlertMessage.trim(),
+      postedBy: `${newAlertDept} Officer`,
+    });
+
+    setAlertPostSuccess(`🚨 Alert broadcasted to all citizens live under header marquee!`);
+    setTimeout(() => {
+      setIsAlertModalOpen(false);
+      setAlertPostSuccess('');
+      setNewAlertMessage('');
+    }, 1500);
+  };
 
   // Notifications State (Dynamic based on real complaints)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -226,10 +337,10 @@ export function DashboardPage() {
     }));
   }, [complaints]);
 
-  // Citizen registered info
-  const userDistrict = useMemo(() => user?.district || user?.city || 'Hassan', [user]);
-  const userCity = useMemo(() => user?.city || user?.district || 'Hassan', [user]);
-  const userState = useMemo(() => user?.state || 'Karnataka', [user]);
+  // Citizen location info (live detected GPS location takes priority over registered profile)
+  const userDistrict = useMemo(() => detectedDistrict || user?.district || user?.city || 'Hassan', [detectedDistrict, user]);
+  const userCity = useMemo(() => detectedCity || user?.city || user?.district || 'Hassan', [detectedCity, user]);
+  const userState = useMemo(() => detectedState || user?.state || 'Karnataka', [detectedState, user]);
 
   // Dark Mode State
   const [darkMode, setDarkMode] = useState(() => {
@@ -374,7 +485,9 @@ export function DashboardPage() {
 
   // Handlers for Officer Actions
   const handleMarkOnProcess = async (complaintId: string) => {
-    await updateStatus(complaintId, 'Work In Progress', 'Team dispatched to fix the issue. Work is now underway.');
+    await updateStatus(complaintId, 'Work Started', '⚡ Field team dispatched. Work is now underway (Work Started).');
+    setOnProcessSuccessMsg(`⚡ Status updated to Work Started (In Progress) for ticket #${complaintId}!`);
+    setTimeout(() => setOnProcessSuccessMsg(''), 4000);
   };
 
   const handleWorkDoneFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -389,7 +502,7 @@ export function DashboardPage() {
 
   const handleConfirmCompletion = async () => {
     if (!workDoneImage) {
-      alert('Please upload a photo of the completed work before closing this ticket.');
+      alert('Please upload or snap a photo of the completed work before closing this ticket.');
       return;
     }
 
@@ -398,20 +511,21 @@ export function DashboardPage() {
     setIsSubmittingCompletion(true);
     await updateStatus(
       activeSelectedComplaint.complaintId,
-      'Resolved',
-      `✅ Work completed by Ward Officer. Verification photo uploaded: "${workDoneRemarks || 'Repair executed according to municipal standard.'}"`,
+      'Completed',
+      `✅ Work is Completed & verified by Ward Officer. Proof photo uploaded: "${workDoneRemarks || 'Repair executed according to municipal standard.'}"`,
       workDoneImage,
       workDoneRemarks
     );
 
     setIsSubmittingCompletion(false);
-    setCompletionSuccess('Work done image verified! Complaint marked as COMPLETED & synced with citizen view.');
+    setCompletionSuccess(`🎉 Work is Completed! Ticket #${activeSelectedComplaint.complaintId} marked as COMPLETED & RESOLVED.`);
     setTimeout(() => {
       setIsCompleteModalOpen(false);
       setCompletionSuccess('');
       setWorkDoneImage(null);
       setWorkDoneRemarks('');
-    }, 1200);
+      stopWorkDoneCamera();
+    }, 1500);
   };
 
   const handlePushToDepartment = async () => {
@@ -1041,10 +1155,23 @@ export function DashboardPage() {
                           <p className="text-xs text-slate-300 leading-relaxed">
                             {item.description}
                           </p>
-                          <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-400 pt-1">
-                            <span>📍 <strong>Location:</strong> {item.location?.area || 'BM Road Area'} ({item.location?.ward || 'Ward 04'})</span>
-                            <span>👤 <strong>Citizen:</strong> {item.citizenName || 'Concerned Citizen'} ({item.citizenPhone || '+91 98765 43210'})</span>
-                            <span>🕒 <strong>Reported:</strong> {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently'}</span>
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-900/80 text-[11px] text-slate-400">
+                            <div className="flex flex-wrap items-center gap-4">
+                              <span>📍 <strong>Location:</strong> {item.location?.area || 'BM Road Area'} ({item.location?.ward || 'Ward 04'})</span>
+                              <span>👤 <strong>Citizen:</strong> {item.citizenName || 'Concerned Citizen'} ({item.citizenPhone || '+91 98765 43210'})</span>
+                              <span>🕒 <strong>Reported:</strong> {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently'}</span>
+                            </div>
+
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${item.location?.coordinates?.lat || 13.0042},${item.location?.coordinates?.lng || 76.1018}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[11px] font-extrabold bg-blue-600/90 hover:bg-blue-600 text-white shadow-sm transition shrink-0"
+                              title="Navigate to issue location via Google Maps"
+                            >
+                              <Navigation className="h-3 w-3" />
+                              <span>Navigate GPS</span>
+                            </a>
                           </div>
                         </div>
 
@@ -1327,6 +1454,20 @@ export function DashboardPage() {
                 <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
               </button>
 
+              {/* Broadcast Emergency Department Alert Message Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAlertDept(selectedDepartment || 'Public Works Department (PWD)');
+                  setIsAlertModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 px-3.5 py-1.5 text-xs font-black text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 transition shadow-sm"
+                title="Publish real-time alert message visible to all citizens under header marquee"
+              >
+                <Bell className="h-3.5 w-3.5 text-orange-500" />
+                <span>+ Broadcast Alert</span>
+              </button>
+
               {/* Button 3: View Role Switcher */}
               <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 text-xs font-bold">
                 <button
@@ -1528,28 +1669,23 @@ export function DashboardPage() {
                       </p>
                     </div>
 
-                    {/* Citizen & Location Metadata */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Complainant</span>
-                        <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">
-                          {activeSelectedComplaint.citizenName || 'Concerned Citizen'}
-                        </span>
-                        <span className="text-[11px] text-slate-500 block">
-                          {activeSelectedComplaint.citizenPhone || '+91 98450 11223'}
-                        </span>
-                      </div>
-
-                      <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Location</span>
-                        <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">
-                          {activeSelectedComplaint.location?.area || 'BM Road Area'}
-                        </span>
-                        <span className="text-[11px] text-slate-500 block">
-                          {activeSelectedComplaint.location?.ward || 'Ward 04'} · {activeSelectedComplaint.location?.city || 'Hassan'}
-                        </span>
-                      </div>
+                    {/* Citizen Complainant Info */}
+                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Complainant Contact</span>
+                      <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">
+                        👤 {activeSelectedComplaint.citizenName || 'Concerned Citizen'}
+                      </span>
+                      <span className="text-[11px] text-slate-500 block">
+                        📞 {activeSelectedComplaint.citizenPhone || '+91 98450 11223'}
+                      </span>
                     </div>
+
+                    {/* Department Interactive Location & Google Maps Navigation */}
+                    <LocationMapCard
+                      location={activeSelectedComplaint.location}
+                      title="Department Crew Live GPS Navigation Target"
+                      showEmbedMap={true}
+                    />
 
                     {/* Photo of issue */}
                     {activeSelectedComplaint.imageUrl && (
@@ -1585,20 +1721,35 @@ export function DashboardPage() {
                     )}
 
                     {/* ACTION BUTTONS FROM SKETCH: [On Process] & [Completed] */}
+                    {onProcessSuccessMsg && (
+                      <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-2 animate-bounce">
+                        <Clock className="h-4 w-4 shrink-0" />
+                        <span>{onProcessSuccessMsg}</span>
+                      </div>
+                    )}
+
                     <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
                       <button
                         type="button"
                         onClick={() => handleMarkOnProcess(activeSelectedComplaint.complaintId)}
-                        className="flex items-center gap-2 rounded-2xl bg-amber-500 hover:bg-amber-600 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
+                        className={`flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-extrabold transition shadow-sm ${
+                          activeSelectedComplaint.status === 'Work Started' || activeSelectedComplaint.status === 'Work In Progress'
+                            ? 'bg-amber-600 text-white ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900'
+                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                        }`}
                       >
                         <Clock className="h-4 w-4" />
-                        <span>On Process (Work Started)</span>
+                        <span>
+                          {activeSelectedComplaint.status === 'Work Started' || activeSelectedComplaint.status === 'Work In Progress'
+                            ? '⚡ Work Started (In Progress)'
+                            : 'On Process (Start Work)'}
+                        </span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setIsCompleteModalOpen(true)}
-                        className="flex items-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
+                        className="flex items-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 text-xs font-extrabold text-white transition shadow-sm"
                       >
                         <Check className="h-4 w-4" />
                         <span>Completed (Share Image)</span>
@@ -1730,8 +1881,40 @@ export function DashboardPage() {
                   <>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        1. Upload Completed Work Photo Proof (Mandatory)
+                        1. Attach Completed Work Photo Proof (Mandatory)
                       </label>
+
+                      {/* Dual Option Selectors: Upload Photo vs Live Photo from Camera */}
+                      <div className="flex items-center gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWorkDoneMediaMode('upload');
+                            stopWorkDoneCamera();
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-extrabold transition ${
+                            workDoneMediaMode === 'upload'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <Upload className="h-3.5 w-3.5" />
+                          <span>📁 Upload Photo</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setWorkDoneMediaMode('camera')}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-extrabold transition ${
+                            workDoneMediaMode === 'camera'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <Camera className="h-3.5 w-3.5" />
+                          <span>📸 Live Camera Snapshot</span>
+                        </button>
+                      </div>
 
                       {workDoneImage ? (
                         <div className="relative rounded-2xl overflow-hidden border border-emerald-500/50 bg-slate-950 p-2 max-h-56 flex items-center justify-center">
@@ -1744,13 +1927,33 @@ export function DashboardPage() {
                             <X className="h-4 w-4" />
                           </button>
                         </div>
+                      ) : workDoneMediaMode === 'camera' ? (
+                        <div className="space-y-2">
+                          <div className="relative rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-800 bg-slate-950 aspect-video flex items-center justify-center">
+                            <video ref={workDoneVideoRef} playsInline className="w-full h-full object-cover" />
+                            {workDoneCameraError && (
+                              <p className="absolute text-xs text-red-400 p-3 bg-slate-950/90 rounded-xl text-center">
+                                {workDoneCameraError}
+                              </p>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={snapWorkDonePhoto}
+                            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-xs font-bold transition shadow-md shadow-emerald-600/25"
+                          >
+                            <Camera className="h-4 w-4" />
+                            <span>Capture Photo Now</span>
+                          </button>
+                        </div>
                       ) : (
                         <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-6 cursor-pointer bg-slate-50 dark:bg-slate-950/60 transition group">
                           <Upload className="h-8 w-8 text-slate-400 group-hover:text-emerald-500 transition mb-2" />
                           <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                            Click to capture / upload work completed photo
+                            Click to browse / upload work completed photo
                           </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">JPEG, PNG or Camera Snapshot</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">JPEG, PNG file from device</span>
                           <input type="file" accept="image/*" onChange={handleWorkDoneFileUpload} className="hidden" />
                         </label>
                       )}
@@ -1888,6 +2091,144 @@ export function DashboardPage() {
             </div>
           )}
         </AnimatePresence>
+
+        {/* ===================================================================== */}
+        {/* MODAL: BROADCAST DEPARTMENT EMERGENCY ALERT TO CITIZENS                */}
+        {/* ===================================================================== */}
+        <AnimatePresence>
+          {isAlertModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsAlertModalOpen(false)}
+                className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative z-10 w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-2xl transition-colors space-y-4"
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsAlertModalOpen(false)}
+                  className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+
+                <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/10 text-orange-500 font-bold shrink-0">
+                    <Bell className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                      Broadcast Department Alert Message
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Publish live ticker alert visible to all citizens below header bar
+                    </p>
+                  </div>
+                </div>
+
+                {alertPostSuccess ? (
+                  <div className="rounded-2xl bg-orange-500/10 border border-orange-500/30 p-4 text-center text-xs font-bold text-orange-600 dark:text-orange-400 animate-pulse">
+                    {alertPostSuccess}
+                  </div>
+                ) : (
+                  <form onSubmit={handlePostDepartmentAlert} className="space-y-3.5">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                        Department
+                      </label>
+                      <select
+                        value={newAlertDept}
+                        onChange={(e) => setNewAlertDept(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none"
+                      >
+                        {ALL_DEPARTMENTS.map((dept) => (
+                          <option key={dept} value={dept}>
+                            {dept}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                          Alert Badge Icon
+                        </label>
+                        <select
+                          value={newAlertIcon}
+                          onChange={(e) => setNewAlertIcon(e.target.value)}
+                          className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none"
+                        >
+                          <option value="🚨">🚨 Emergency Warning</option>
+                          <option value="⚡">⚡ Active Outage / Repair</option>
+                          <option value="📞">📞 Hotline Advisory</option>
+                          <option value="🌾">🌾 Agriculture Advisory</option>
+                          <option value="📢">📢 General Announcement</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                          Severity Level
+                        </label>
+                        <select
+                          value={newAlertCategory}
+                          onChange={(e) => setNewAlertCategory(e.target.value as any)}
+                          className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none"
+                        >
+                          <option value="warning">High Priority Warning</option>
+                          <option value="emergency">Critical Emergency</option>
+                          <option value="advisory">Public Advisory</option>
+                          <option value="info">Information</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                        Alert Message Text (Mandatory)
+                      </label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={newAlertMessage}
+                        onChange={(e) => setNewAlertMessage(e.target.value)}
+                        placeholder="e.g. Water pipeline maintenance on Ring Road. Supply paused till 4 PM."
+                        className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3 text-xs text-slate-900 dark:text-white outline-none focus:border-orange-500"
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsAlertModalOpen(false)}
+                        className="rounded-xl border border-slate-300 dark:border-slate-800 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="submit"
+                        className="flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2 text-xs font-bold text-white transition shadow-md shadow-orange-600/25"
+                      >
+                        <Bell className="h-4 w-4" />
+                        <span>Broadcast Alert to Citizens</span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -1922,7 +2263,7 @@ export function DashboardPage() {
                 <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 live-dot" />
               </div>
               <h1 className="text-sm sm:text-[15px] font-semibold text-white leading-tight">
-                {t('brand.cityGrievance', { city: userCity })}
+                {t('brand.cityGrievance', { city: detectedCity || userCity })}
               </h1>
             </div>
           </div>
@@ -2022,24 +2363,24 @@ export function DashboardPage() {
         <div className="overflow-hidden flex-1 relative flex items-center z-10">
           <div className="animate-marquee flex items-center gap-6 text-xs font-semibold text-slate-200 tracking-wide">
             <div className="flex items-center gap-6 shrink-0">
-              <span>🚨 {t('alert.rain')}</span>
-              <span>•</span>
-              <span>⚡ {t('alert.track')}</span>
-              <span>•</span>
-              <span>📞 {t('alert.helpline')}</span>
-              <span>•</span>
-              <span>🌾 {t('alert.agri')}</span>
-              <span>•</span>
+              {alerts.map((alt) => (
+                <span key={`ticker-1-${alt.id}`} className="flex items-center gap-2">
+                  <span>
+                    {alt.icon || '🚨'} <strong className="text-orange-400">[{alt.department.split(' ')[0]}]:</strong> {alt.message}
+                  </span>
+                  <span className="text-orange-500">•</span>
+                </span>
+              ))}
             </div>
             <div className="flex items-center gap-6 shrink-0">
-              <span>🚨 {t('alert.rain')}</span>
-              <span>•</span>
-              <span>⚡ {t('alert.track')}</span>
-              <span>•</span>
-              <span>📞 {t('alert.helpline')}</span>
-              <span>•</span>
-              <span>🌾 {t('alert.agri')}</span>
-              <span>•</span>
+              {alerts.map((alt) => (
+                <span key={`ticker-2-${alt.id}`} className="flex items-center gap-2">
+                  <span>
+                    {alt.icon || '🚨'} <strong className="text-orange-400">[{alt.department.split(' ')[0]}]:</strong> {alt.message}
+                  </span>
+                  <span className="text-orange-500">•</span>
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -2244,18 +2585,18 @@ export function DashboardPage() {
               </div>
 
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3.5 space-y-2 text-xs">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-slate-500 dark:text-slate-400">{t('gps.jurisdiction')}</span>
-                  <span className="font-black text-blue-600 dark:text-blue-400">{userCity}, Ward 04</span>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="font-bold text-slate-500 dark:text-slate-400 shrink-0">{t('gps.jurisdiction')}</span>
+                  <span className="font-black text-blue-600 dark:text-blue-400 text-right truncate max-w-[200px]" title={liveAddress}>{liveAddress}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                  <span>Lat: 13.0042° N</span>
-                  <span>Lng: 76.1018° E</span>
+                  <span>Lat: {liveCoords.lat.toFixed(4)}° {liveCoords.lat >= 0 ? 'N' : 'S'}</span>
+                  <span>Lng: {liveCoords.lng.toFixed(4)}° {liveCoords.lng >= 0 ? 'E' : 'W'}</span>
                 </div>
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
                   <span className="text-slate-500">{t('gps.geofence')}</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <Radio className="h-3 w-3 animate-pulse" /> {t('gps.live')}
+                    <Radio className="h-3 w-3 animate-pulse" /> {isDetectingGPS ? 'Detecting GPS...' : t('gps.live')}
                   </span>
                 </div>
               </div>

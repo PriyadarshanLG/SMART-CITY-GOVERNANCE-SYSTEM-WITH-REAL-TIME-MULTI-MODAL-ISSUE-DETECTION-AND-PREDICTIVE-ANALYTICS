@@ -81,13 +81,23 @@ export async function addComplaintRecord(complaintData: Partial<ComplaintRecord>
     citizenEmail: complaintData.citizenEmail || '',
     imageUrl: complaintData.imageUrl,
     cropType: complaintData.cropType,
-    location: complaintData.location || {
-      city: 'Hassan',
-      district: 'Hassan',
-      state: 'Karnataka',
-      area: 'Local Area',
-      ward: 'Ward 01',
-    },
+    location: (() => {
+      const rawLoc = complaintData.location || {
+        city: 'Hassan',
+        district: 'Hassan',
+        state: 'Karnataka',
+        area: 'Local Area',
+        ward: 'Ward 01',
+      };
+      const lat = rawLoc.coordinates?.lat ?? rawLoc.latitude ?? 13.0042;
+      const lng = rawLoc.coordinates?.lng ?? rawLoc.longitude ?? 76.1018;
+      return {
+        ...rawLoc,
+        latitude: lat,
+        longitude: lng,
+        coordinates: { lat, lng },
+      };
+    })(),
     createdAt: new Date().toISOString(),
     timeline: [
       {

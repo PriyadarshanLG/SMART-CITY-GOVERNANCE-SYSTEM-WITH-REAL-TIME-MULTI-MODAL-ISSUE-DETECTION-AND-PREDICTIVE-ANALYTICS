@@ -53,6 +53,7 @@ import L from 'leaflet';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { addComplaintRecord } from '../lib/complaintsStore';
+import { fetchLiveAddress, getCurrentPositionAsync } from '../lib/geoHelper';
 
 export const CATEGORIES = [
   // 1. PWD (Public Works Department)
@@ -323,83 +324,37 @@ export function ComplaintFormPage() {
   };
 
   // =========================================================================
-  // 3. REVERSE GEOCODING (Free OpenStreetMap Nominatim API)
+  // 3. REVERSE GEOCODING (Multi-tier OpenStreetMap Nominatim & BigDataCloud)
   // =========================================================================
   const reverseGeocode = async (lat: number, lng: number) => {
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data.address) {
-          const road = data.address.road || data.address.suburb || data.address.neighbourhood || 'Ring Road';
-          const city = data.address.city || data.address.town || data.address.county || 'Hassan';
-          const state = data.address.state || 'Karnataka';
-          const postcode = data.address.postcode || '573201';
-
-          setLocationAddress(`${road}, ${city}`);
-          setLocationCity(city);
-          setLocationDistrict(data.address.county || city);
-          setLocationState(state);
-          setLocationPincode(postcode);
-          setLocationWard('Ward 04');
-        }
-      }
+      const geoInfo = await fetchLiveAddress(lat, lng);
+      setLocationAddress(geoInfo.fullAddress || geoInfo.shortLocation);
+      setLocationCity(geoInfo.city || 'Hassan');
+      setLocationDistrict(geoInfo.district || geoInfo.city || 'Hassan');
+      setLocationState(geoInfo.state || 'Karnataka');
+      setLocationPincode(geoInfo.pincode || '573201');
+      setLocationWard('Ward 04');
     } catch {
-      // Fallback
+      // Keep existing values
     }
   };
 
   // =========================================================================
   // 4. DETECT LIVE GPS LOCATION
   // =========================================================================
-  const detectLiveLocation = () => {
+  const detectLiveLocation = async () => {
     setIsLocating(true);
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const accuracy = Math.round(pos.coords.accuracy);
+    const pos = await getCurrentPositionAsync();
+    setCoords({ lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy });
+    setIsLocating(false);
 
-          setCoords({ lat, lng, accuracy });
-          setIsLocating(false);
-
-          if (mapInstanceRef.current && markerRef.current) {
-            mapInstanceRef.current.setView([lat, lng], 16);
-            markerRef.current.setLatLng([lat, lng]);
-          }
-
-          await reverseGeocode(lat, lng);
-        },
-        async () => {
-          // Fallback via IP Geolocation (ipwho.is)
-          try {
-            const ipRes = await fetch('https://ipwho.is/');
-            if (ipRes.ok) {
-              const ipData = await ipRes.json();
-              if (ipData.success && ipData.latitude && ipData.longitude) {
-                const lat = Number(ipData.latitude);
-                const lng = Number(ipData.longitude);
-                setCoords({ lat, lng, accuracy: 50 });
-                if (mapInstanceRef.current && markerRef.current) {
-                  mapInstanceRef.current.setView([lat, lng], 15);
-                  markerRef.current.setLatLng([lat, lng]);
-                }
-                await reverseGeocode(lat, lng);
-              }
-            }
-          } catch {
-            // Keep default Hassan coordinates
-          }
-          setIsLocating(false);
-        },
-        { timeout: 8000, enableHighAccuracy: true }
-      );
-    } else {
-      setIsLocating(false);
+    if (mapInstanceRef.current && markerRef.current) {
+      mapInstanceRef.current.setView([pos.lat, pos.lng], 16);
+      markerRef.current.setLatLng([pos.lat, pos.lng]);
     }
+
+    await reverseGeocode(pos.lat, pos.lng);
   };
 
   // =========================================================================
@@ -511,6 +466,10 @@ export function ComplaintFormPage() {
           district: locationDistrict,
           state: locationState,
           area: locationAddress,
+          coordinates: {
+            lat: coords.lat,
+            lng: coords.lng,
+          },
         },
         citizenName: user?.name || 'Concerned Citizen',
         citizenPhone: user?.phone || '+91 98765 43210',

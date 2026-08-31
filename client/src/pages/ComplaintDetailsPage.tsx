@@ -49,6 +49,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useComplaints, getStoredComplaints } from '../lib/complaintsStore';
 import type { ComplaintRecord } from '../types/complaint';
+import { LocationMapCard } from '../components/common/LocationMapCard';
 
 // Department contact directory based on department & district
 const DEPARTMENT_DIRECTORY: Record<
@@ -614,6 +615,13 @@ export function ComplaintDetailsPage() {
               </span>
             </div>
           </div>
+
+          {/* Department Interactive GPS Location & Turn-by-Turn Google Maps Navigation */}
+          <LocationMapCard
+            location={complaint.location}
+            title="Department Field Crew Live Navigation & Location Map"
+            showEmbedMap={true}
+          />
 
           {/* Description & Photo Proof */}
           <div className="pt-2 space-y-3">

@@ -15,6 +15,11 @@ export interface ComplaintLocation {
   state?: string;
   area?: string;
   landmark?: string;
+  pincode?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface ComplaintRecord {
