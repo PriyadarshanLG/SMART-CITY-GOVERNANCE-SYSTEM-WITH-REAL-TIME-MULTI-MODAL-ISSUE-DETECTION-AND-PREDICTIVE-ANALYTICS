@@ -321,6 +321,20 @@ export function DashboardPage() {
     }, 1500);
   };
 
+  // Profile Modal State & My Complaints Filtering
+  const [profileActiveTab, setProfileActiveTab] = useState<'profile' | 'complaints'>('profile');
+
+  const myComplaints = useMemo(() => {
+    if (!user) return complaints;
+    const filtered = complaints.filter(
+      (c) =>
+        (user.email && c.citizenEmail === user.email) ||
+        (user.phone && c.citizenPhone === user.phone) ||
+        (user.name && c.citizenName === user.name)
+    );
+    return filtered.length > 0 ? filtered : complaints;
+  }, [complaints, user]);
+
   // Notifications State (Dynamic based on real complaints)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notifications = useMemo(() => {
@@ -2798,6 +2812,236 @@ export function DashboardPage() {
               >
                 Track Now
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Citizen Profile & My Complaints Modal */}
+      <AnimatePresence>
+        {isProfileModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsProfileModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative z-10 w-full max-w-lg rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-2xl transition-colors space-y-4 max-h-[90vh] overflow-y-auto"
+            >
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(false)}
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-white font-black text-xl shadow-md shadow-orange-500/25 shrink-0">
+                  <User className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    {user?.name || 'Registered Citizen'}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {user?.email || 'citizen@smartcity.gov.in'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Dual Tab Toggle: My Profile Details vs My Complaints */}
+              <div className="flex items-center gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setProfileActiveTab('profile')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-extrabold transition ${
+                    profileActiveTab === 'profile'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <User className="h-3.5 w-3.5" />
+                  <span>Registration Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setProfileActiveTab('complaints')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-extrabold transition ${
+                    profileActiveTab === 'complaints'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>My Complaints ({myComplaints.length})</span>
+                </button>
+              </div>
+
+              {/* TAB 1: REGISTRATION DETAILS */}
+              {profileActiveTab === 'profile' && (
+                <div className="space-y-3 pt-1 text-xs">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 space-y-2.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-1.5">
+                      Verified Citizen Account Details
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Full Name</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-xs">{user?.name || 'Concerned Citizen'}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Mobile Phone</span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono text-xs">{user?.phone || '+91 98765 43210'}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Email Address</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-xs">{user?.email || 'citizen@smartcity.gov.in'}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Portal Role</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">Verified Citizen</span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Current Location</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-xs">{detectedCity || userCity}, {detectedDistrict || userDistrict}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Member Status</span>
+                        <span className="font-bold text-blue-600 dark:text-blue-400 text-xs">Active Registered Citizen</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setProfileActiveTab('complaints')}
+                      className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      <span>View My Submitted Complaints</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="flex items-center gap-1.5 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 px-3.5 py-2 font-bold text-xs transition border border-red-500/20"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: MY COMPLAINTS & COMPLAINT IDS */}
+              {profileActiveTab === 'complaints' && (
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      Grievances Logged By You ({myComplaints.length})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileModalOpen(false);
+                        navigate('/report');
+                      }}
+                      className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      <PlusCircle className="h-3.5 w-3.5" />
+                      <span>File New Complaint</span>
+                    </button>
+                  </div>
+
+                  {myComplaints.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-8 text-center space-y-2">
+                      <FileText className="h-8 w-8 text-slate-400 mx-auto" />
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-300">No complaints registered yet</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileModalOpen(false);
+                          navigate('/report');
+                        }}
+                        className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white"
+                      >
+                        Lodge Grievance Now
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                      {myComplaints.map((item) => {
+                        const isSolved = item.status === 'Resolved' || item.status === 'Completed' || item.status === 'Citizen Verified';
+                        const isOngoing = item.status === 'Work In Progress' || item.status === 'Work Started' || item.status === 'Department Assigned';
+
+                        const badgeStyle = isSolved
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                          : isOngoing
+                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                          : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30';
+
+                        return (
+                          <div
+                            key={item.complaintId}
+                            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 p-3.5 space-y-2 hover:border-blue-500 transition"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20">
+                                  Ticket #{item.complaintId}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  {item.category}
+                                </span>
+                              </div>
+
+                              <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${badgeStyle}`}>
+                                {isSolved ? '● Completed' : isOngoing ? '● Work Started' : '● Registered'}
+                              </span>
+                            </div>
+
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
+                              {item.title}
+                            </h4>
+
+                            <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500">
+                              <span>📍 {item.location?.area || 'Local Area'}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsProfileModalOpen(false);
+                                  navigate(`/complaints/${item.complaintId}`);
+                                }}
+                                className="flex items-center gap-1 font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                <span>Track Live SLA</span>
+                                <ChevronRight className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </motion.div>
           </div>
         )}
