@@ -48,6 +48,7 @@ export function LoadingPage() {
 
   // Auth Modal State: 'select' | 'citizen-login' | 'citizen-register' | 'department-login'
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [modalStep, setModalStep] = useState<ModalStep>('select');
 
   // Form Fields - Login
@@ -361,9 +362,8 @@ export function LoadingPage() {
       {/* ========================================================================= */}
       {/* HEADER NAVIGATION ([Logo] Home  About  How it works  Login)              */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/85 backdrop-blur-2xl transition-colors duration-300">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-          
+      <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 shadow-sm shadow-slate-900/5 backdrop-blur-xl transition-colors duration-300 dark:border-slate-800/80 dark:bg-slate-950/90">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           {/* Logo & Portal Branding */}
           <a
             href="#home"
@@ -371,229 +371,211 @@ export function LoadingPage() {
               e.preventDefault();
               scrollToSection('home');
             }}
-            className="flex items-center gap-3 group cursor-pointer"
+            className="group flex min-w-0 shrink-0 cursor-pointer items-center gap-2.5 sm:gap-3"
           >
-            <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 text-white shadow-lg shadow-blue-500/25 ring-1 ring-white/20 transition-transform group-hover:scale-105">
-              <Building2 className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-slate-950" />
-              </span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#123b5d] text-white transition-colors group-hover:bg-[#194b73] sm:h-11 sm:w-11">
+              <Building2 className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-blue-600 dark:text-blue-400">
-                  JanSeva · Smart City
-                </span>
-                <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Gov AI
-                </span>
+            <div className="min-w-0">
+              <div className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400 min-[380px]:block">
+                JanSeva · Smart City
               </div>
-              <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition">
-                Smart Problem Reporting System
+              <h1 className="truncate text-xs font-bold tracking-tight text-slate-900 dark:text-white sm:text-base">
+                Civic Services Portal
               </h1>
             </div>
           </a>
 
-          {/* Navigation Links from the sketch */}
-          <nav className="flex items-center gap-1 sm:gap-2 md:gap-4">
-            <button
-              type="button"
-              onClick={() => scrollToSection('home')}
-              className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900/60 rounded-xl transition"
-            >
-              Home
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('about')}
-              className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900/60 rounded-xl transition"
-            >
-              About
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('how-it-works')}
-              className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900/60 rounded-xl transition"
-            >
-              How it works
-            </button>
+          <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
+            {[
+              { id: 'home', label: 'Home' },
+              { id: 'about', label: 'About' },
+              { id: 'how-it-works', label: 'How it works' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
 
-            {/* Helpline (desktop only) */}
-            <div className="hidden lg:flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-900/80 px-3 py-1 text-xs text-slate-600 dark:text-slate-300">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <div className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 xl:flex">
               <PhoneCall className="h-3.5 w-3.5 text-amber-500" />
               <span className="font-semibold text-slate-900 dark:text-white">1800-425-2026</span>
             </div>
 
-            {/* Dark / Light Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
+              aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-main-navigation"
+            >
+              <span>Menu</span>
+              {isMobileMenuOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800"
               title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
             </button>
 
-            {/* LOGIN BUTTON from the sketch */}
             {isAuthenticated && user ? (
               <button
                 type="button"
                 onClick={() => handleRoleDashboardRedirect(user.role)}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-md hover:from-emerald-700 hover:to-teal-700 transition"
+                className="flex h-9 items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-3 text-xs font-semibold text-white shadow-sm transition hover:from-emerald-700 hover:to-teal-700 sm:gap-2 sm:px-4 sm:text-sm"
               >
                 <User className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Portal:</span> {user.role}
+                <span className="max-w-24 truncate sm:max-w-none">{user.role}</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={openPortalModal}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition"
+                className="flex h-9 items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 text-xs font-semibold text-white shadow-sm shadow-blue-500/20 transition hover:from-blue-700 hover:to-indigo-700 sm:gap-2 sm:px-4 sm:text-sm"
               >
                 <Lock className="h-3.5 w-3.5" />
                 <span>Login</span>
               </button>
             )}
-          </nav>
+          </div>
         </div>
+
+        {isMobileMenuOpen && (
+          <nav
+            id="mobile-main-navigation"
+            aria-label="Mobile navigation"
+            className="border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950 sm:px-6 lg:hidden"
+          >
+            <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2">
+              {[
+                { id: 'home', label: 'Home' },
+                { id: 'about', label: 'About' },
+                { id: 'how-it-works', label: 'How it works' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    scrollToSection(item.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="rounded-lg px-2 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <a
+              href="tel:18004252026"
+              className="mx-auto mt-2 flex max-w-7xl items-center justify-center gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <PhoneCall className="h-4 w-4 text-amber-500" />
+              Helpline: 1800-425-2026
+            </a>
+          </nav>
+        )}
       </header>
 
-      {/* ========================================================================= */}
-      {/* SECTION 1: HERO SECTION WITH PHOTO/IMAGE BACKGROUND                       */}
-      {/* ========================================================================= */}
-      <section className="relative min-h-[85vh] lg:min-h-[88vh] w-full flex items-center justify-center overflow-hidden">
-        
-        {/* Background Generated Smart City Hero Photo */}
-        <div className="absolute inset-0 z-0">
+      {/* Civic services hero */}
+      <section className="relative isolate overflow-hidden bg-slate-950">
+        <div className="absolute inset-0 z-0 bg-slate-950">
           <img
-            src="/images/smart-city-hero.jpg"
-            alt="Smart City Intelligent Infrastructure"
-            className="w-full h-full object-cover object-center scale-105 animate-in fade-in duration-1000"
+            src="/images/smart-city-civic-services-hero.png"
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover object-center"
           />
-          
-          {/* Multi-layered Dark Gradient Overlays for High Contrast in both themes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/45 dark:from-slate-950 dark:via-slate-950/80 dark:to-slate-950/50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/50 to-slate-950/85" />
-          
-          {/* Subtle Grid Lines Overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f610_1px,transparent_1px),linear-gradient(to_bottom,#3b82f610_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/15 lg:from-slate-950/20 lg:via-transparent lg:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-slate-950/10" />
         </div>
 
-        {/* Hero Content Overlay */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center space-y-8">
-          
-          {/* Live Mission Badge */}
+        <div className="relative z-10 flex min-h-[620px] w-full flex-col justify-center px-6 py-14 sm:px-8 md:py-16 lg:min-h-[calc(100svh-84px)] lg:justify-between lg:px-10 lg:py-16">
           <motion.div
-            initial={{ opacity: 0, y: -15 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full border border-blue-400/40 bg-slate-950/85 px-4 py-1.5 text-xs font-bold text-blue-300 backdrop-blur-xl shadow-lg"
+            className="max-w-3xl lg:max-w-[50%]"
           >
-            <Radio className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-            <span>JanSeva 2026 · Smart City Complaint System</span>
-          </motion.div>
-
-          {/* Main Hero Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="space-y-4 max-w-4xl"
-          >
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12] drop-shadow-md">
-              Civic Governance,{' '}
-              <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-emerald-400 bg-clip-text text-transparent">
-                Intelligently Automated.
+            <div className="mb-7 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 sm:text-sm">
+              <span className="h-px w-9 bg-orange-400" aria-hidden="true" />
+              <span>JanSeva <span className="px-1 text-slate-400">/</span> Smart City</span>
+            </div>
+            <h2 className="max-w-[42rem] text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <span className="text-orange-400">Your city.</span>{' '}
+              <span className="text-white">Your voice.</span>
+              <span className="mt-2 block text-3xl font-medium leading-tight tracking-tight text-white/90 sm:text-4xl lg:text-5xl">
+                Let’s make <span className="font-semibold text-orange-400">things better.</span>
               </span>
             </h2>
-            <p className="text-sm sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed drop-shadow">
-              Report issues with photos or video. Our system automatically figures out which team should handle it, assigns them, and keeps you updated every step of the way.
+            <p className="mt-6 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">
+              From a pothole on your street to a missed collection, report local issues and stay informed as they’re resolved.
             </p>
-          </motion.div>
 
-          {/* Hero Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-wrap items-center justify-center gap-3.5"
-          >
-            <button
-              type="button"
-              onClick={() => navigate('/report')}
-              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition"
-            >
-              <Camera className="h-4 w-4" />
-              <span>Report Civic Grievance</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-
-            {!isAuthenticated && (
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={openPortalModal}
-                className="flex items-center gap-2 rounded-2xl border border-blue-400/40 bg-slate-900/80 px-7 py-3.5 text-sm font-bold text-blue-200 hover:bg-slate-800 hover:text-white backdrop-blur-md transition shadow-lg"
+                onClick={() => navigate('/report')}
+                className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-orange-400 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-orange-950/25 transition hover:bg-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
               >
-                <Lock className="h-4 w-4" />
-                <span>Portal Login</span>
+                <Camera className="h-4 w-4" />
+                <span>Report an issue</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
-            )}
+              {!isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={openPortalModal}
+                  className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-white/35 bg-slate-950/20 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <Lock className="h-4 w-4" />
+                  <span>Sign in</span>
+                </button>
+              )}
+            </div>
           </motion.div>
 
-          {/* Floating Glassmorphic Telemetry Cards Over the Hero */}
           <motion.div
-            initial={{ opacity: 0, y: 25 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="w-full max-w-5xl pt-4"
+            transition={{ duration: 0.45, delay: 0.18 }}
+            className="mt-14 max-w-3xl border-t border-white/25 pt-5 sm:mt-16 sm:pt-6 lg:mt-12 lg:max-w-[50%]"
+            aria-label="City service statistics"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-3.5 backdrop-blur-xl text-left shadow-lg">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">SLA Compliance</span>
-                <span className="text-lg sm:text-2xl font-black text-emerald-400">99.4%</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">Strict Civic Target</span>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4 sm:gap-0">
+              <div className="sm:pr-6">
+                <p className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{activeNodes}<span className="text-base font-medium text-slate-300">/120</span></p>
+                <p className="mt-1 text-xs text-slate-300 sm:text-sm">Wards mapped</p>
               </div>
-
-              <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-3.5 backdrop-blur-xl text-left shadow-lg">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">GIS Wards Mapped</span>
-                <span className="text-lg sm:text-2xl font-black text-blue-400">{activeNodes}/120</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">100% Boundary Linked</span>
+              <div className="sm:border-l sm:border-white/25 sm:px-6">
+                <p className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">99.4<span className="text-base font-medium text-slate-300">%</span></p>
+                <p className="mt-1 text-xs text-slate-300 sm:text-sm">SLA compliance</p>
               </div>
-
-              <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-3.5 backdrop-blur-xl text-left shadow-lg">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Average Time to Fix</span>
-                <span className="text-lg sm:text-2xl font-black text-indigo-300">9.4 Hours</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">-38% vs Manual</span>
+              <div className="sm:border-l sm:border-white/25 sm:px-6">
+                <p className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">9.4 <span className="text-base font-medium text-slate-300">hrs</span></p>
+                <p className="mt-1 text-xs text-slate-300 sm:text-sm">Average time to fix</p>
               </div>
-
-              <div className="rounded-2xl border border-slate-800/90 bg-slate-950/75 p-3.5 backdrop-blur-xl text-left shadow-lg">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">System Uptime</span>
-                <span className="text-lg sm:text-2xl font-black text-amber-400">{systemUptime}%</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">Gov Cloud 24/7</span>
+              <div className="sm:border-l sm:border-white/25 sm:pl-6">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${liveLocation ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  <p className="text-sm font-semibold text-white">{liveLocation ? 'Services online' : 'Connecting'}</p>
+                </div>
+                <p className="mt-1 truncate text-xs text-slate-300 sm:text-sm">
+                  {liveLocation ? `${liveLocation.locality || liveLocation.city}, ${liveLocation.region}` : 'Municipal service area'}
+                </p>
               </div>
-            </div>
-
-            {/* Live Regional Geolocation Bar */}
-            <div className="mt-3 rounded-2xl bg-slate-950/85 border border-emerald-500/30 p-3 flex flex-wrap items-center justify-between gap-2 text-xs backdrop-blur-xl">
-              <div className="flex items-center gap-2 text-emerald-300">
-                <MapPin className="h-4 w-4 text-emerald-400 shrink-0 animate-bounce" />
-                <span className="font-semibold">
-                  Live Regional Node:{' '}
-                  <span className="text-white font-bold">
-                    {liveLocation ? `${liveLocation.locality || liveLocation.city}, ${liveLocation.region}` : 'Connecting Municipal Grid...'}
-                  </span>
-                  {liveLocation && (
-                    <span className="text-[10px] font-mono text-emerald-400/90 ml-1.5 hidden sm:inline">
-                      ({liveLocation.latitude.toFixed(4)}° N, {liveLocation.longitude.toFixed(4)}° E)
-                    </span>
-                  )}
-                </span>
-              </div>
-
-              <span className="text-[10px] font-mono text-emerald-400 uppercase font-extrabold px-2.5 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                ● Telemetry Online
-              </span>
             </div>
           </motion.div>
         </div>
@@ -982,13 +964,14 @@ export function LoadingPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.25 }}
-              className="relative z-10 w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-7 backdrop-blur-2xl shadow-2xl transition-colors"
+              className={`relative z-10 w-full ${modalStep === 'select' ? 'max-w-2xl' : 'max-w-lg'} max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-8 shadow-2xl transition-colors`}
             >
               {/* Close Button */}
               <button
                 type="button"
                 onClick={() => setIsAuthModalOpen(false)}
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition"
+                aria-label="Close login dialog"
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1078,22 +1061,22 @@ export function LoadingPage() {
                       key="step-select"
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="space-y-4 py-2"
+                      className="space-y-6 py-2 sm:px-1"
                     >
-                      <div className="text-center space-y-1 mb-6">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 mb-2">
+                      <div className="text-center space-y-2">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#123b5d] text-white">
                           <Building2 className="h-6 w-6" />
                         </div>
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                        <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                           Select Login Portal
                         </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          Choose your designated access gateway to continue
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          Choose the account type you use to sign in.
                         </p>
                       </div>
 
                       {/* 2 Stacked Boxes (Top: Citizen Login, Bottom: Department Login) */}
-                      <div className="space-y-3.5">
+                      <div className="space-y-3">
                         {/* Top Box: Citizen Login */}
                         <button
                           type="button"
@@ -1103,22 +1086,22 @@ export function LoadingPage() {
                             setSuccessMessage('');
                             refreshLoginCaptcha();
                           }}
-                          className="w-full flex items-center justify-between rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-5 text-left hover:border-blue-600 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 hover:shadow-lg transition-all group"
+                          className="w-full flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/40 p-4 sm:p-5 text-left hover:border-blue-500 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
                               <UserCheck className="h-6 w-6" />
                             </div>
                             <div>
-                              <h4 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                              <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                                 Citizen Login
                               </h4>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                Public grievance filing, live GPS tracking & SLA feedback
+                              <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-400">
+                                File a grievance, track its progress, and share feedback.
                               </p>
                             </div>
                           </div>
-                          <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition" />
+                          <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
                         </button>
 
                         {/* Bottom Box: Department Login */}
@@ -1130,22 +1113,22 @@ export function LoadingPage() {
                             setSuccessMessage('');
                             refreshLoginCaptcha();
                           }}
-                          className="w-full flex items-center justify-between rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-5 text-left hover:border-indigo-600 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 hover:shadow-lg transition-all group"
+                          className="w-full flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/40 p-4 sm:p-5 text-left hover:border-blue-500 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/30 group-hover:scale-105 transition-transform">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#315b70] text-white">
                               <Landmark className="h-6 w-6" />
                             </div>
                             <div>
-                              <h4 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                              <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                                 Department Login
                               </h4>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                Ward Officers, Department Heads & Municipal Staff
+                              <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-400">
+                                For ward officers, department heads, and municipal staff.
                               </p>
                             </div>
                           </div>
-                          <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-1 transition" />
+                          <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
                         </button>
                       </div>
                     </motion.div>

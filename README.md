@@ -139,13 +139,18 @@ cp client/.env.example client/.env
   JWT_ACCESS_EXPIRES_IN=1d
   JWT_REFRESH_EXPIRES_IN=7d
   ML_API_URL=http://localhost:8000
+  GOOGLE_CLOUD_PROJECT=your_google_cloud_project_id
   ```
   *(Note: If using **MongoDB Atlas**, replace `MONGODB_URI` with your connection string: `mongodb+srv://<username>:<password>@cluster.mongodb.net/smartcity`).*
+
+  Voice dictation uses Google Cloud Speech-to-Text. Enable the Speech-to-Text API and billing for your project, set `GOOGLE_CLOUD_PROJECT` in `server/.env`, then configure server-side Application Default Credentials with `gcloud auth application-default login` (or set `GOOGLE_APPLICATION_CREDENTIALS` to a service-account credential file outside the repository). Grant the identity permission to use Speech-to-Text. Do not put Google Cloud credentials in `client/.env`. The report page records audio until you stop (maximum 55 seconds), then transcribes English, Kannada, or Hindi automatically.
 
 - **`client/.env`**:
   ```env
   VITE_API_URL=http://localhost:5000/api
+  VITE_GOOGLE_MAPS_API_KEY=your_google_maps_browser_key
   ```
+  The browser key must have the **Maps JavaScript API** enabled. Restrict it to your application’s HTTP referrers (including `http://localhost:5173/*` and `http://127.0.0.1:5173/*` for local development). Location is read from browser GPS; the report page reverse-geocodes GPS/map coordinates to an area and street address using OpenStreetMap Nominatim. The report form shows the required OpenStreetMap attribution. Do not commit the populated `.env` file.
 
 ---
 

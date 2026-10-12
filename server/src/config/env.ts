@@ -13,6 +13,7 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('1d'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   ML_API_URL: z.string().default('http://localhost:8000'),
+  GOOGLE_CLOUD_PROJECT: z.string().default(''),
 });
 
 export const env = envSchema.parse(process.env);

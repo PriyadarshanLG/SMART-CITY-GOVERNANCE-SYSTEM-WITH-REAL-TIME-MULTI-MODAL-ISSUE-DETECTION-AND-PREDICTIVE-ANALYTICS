@@ -11,12 +11,11 @@ import {
   MapPin,
   RefreshCw,
   LocateFixed,
-  Sparkles,
   PhoneCall,
   Droplets,
 } from 'lucide-react';
 import { HelpDeskModal } from './HelpDeskModal';
-import { fetchLiveAddress, getCurrentPositionAsync } from '../../lib/geoHelper';
+import { formatLocationFromCoordinates, getCurrentPositionAsync } from '../../lib/geoHelper';
 
 interface WeatherData {
   temp: number;
@@ -41,6 +40,7 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
   const [loading, setLoading] = useState(true);
   const [isDetecting, setIsDetecting] = useState(false);
   const [locationName, setLocationName] = useState<string>('Hassan, Karnataka');
+  const [locationError, setLocationError] = useState('');
   const [isHelpDeskOpen, setIsHelpDeskOpen] = useState(false);
 
   useEffect(() => {
@@ -129,14 +129,8 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
         lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       });
 
-      try {
-        const geoInfo = await fetchLiveAddress(latitude, longitude);
-        if (geoInfo.shortLocation) {
-          setLocationName(geoInfo.shortLocation);
-        }
-      } catch {
-        // Keep default
-      }
+      setLocationName(formatLocationFromCoordinates(latitude, longitude).shortLocation);
+      setLocationError('');
     } catch {
       setWeather({
         temp: 26,
@@ -159,10 +153,16 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
 
   const handleDetectLocation = async () => {
     setIsDetecting(true);
-    const pos = await getCurrentPositionAsync();
-    setIsDetecting(false);
-    setCurrentCoords({ lat: pos.lat, lng: pos.lng });
-    if (onLocationUpdate) onLocationUpdate(pos.lat, pos.lng);
+    setLocationError('');
+    try {
+      const pos = await getCurrentPositionAsync();
+      setCurrentCoords({ lat: pos.lat, lng: pos.lng });
+      if (onLocationUpdate) onLocationUpdate(pos.lat, pos.lng);
+    } catch (error) {
+      setLocationError(error instanceof Error ? error.message : 'Could not get your current location.');
+    } finally {
+      setIsDetecting(false);
+    }
   };
 
   const parsed = weather ? parseWeatherCode(weather.weatherCode, weather.windSpeed) : null;
@@ -170,19 +170,19 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
 
   return (
     <>
-      <div className="w-full h-full rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-[0_8px_28px_rgba(15,23,42,0.05)] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(15,23,42,0.1)]">
+      <div className="flex h-full w-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         
         {/* ================================================================= */}
         {/* UPPER SECTION: LIVE WEATHER MONITOR (LARGER READABLE TEXT)       */}
         {/* ================================================================= */}
-        <div className={`p-4 sm:p-4.5 bg-gradient-to-b ${parsed?.cardGradient || 'from-amber-500/10 to-transparent'} border-b border-slate-100 dark:border-slate-800/80 space-y-3 flex-1 flex flex-col justify-between`}>
+        <div className="flex flex-1 flex-col justify-between space-y-3 border-b border-slate-100 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900">
           
           {/* Header */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-amber-500 shrink-0 animate-pulse" />
-              <span className="text-xs sm:text-[13px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">
-                LIVE WEATHER MONITOR
+              <Sun className="h-4 w-4 text-amber-500 shrink-0" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                Local weather
               </span>
             </div>
 
@@ -196,17 +196,17 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
           <div className="flex items-center justify-between gap-3 my-1">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight font-sans">
+                <span className="font-sans text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
                   {loading ? '--' : `${weather?.temp}°C`}
                 </span>
-                <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">
                   Feels {weather?.feelsLike ?? weather?.temp ?? '--'}°
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center gap-1">
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] sm:text-xs font-black uppercase tracking-wider border ${
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider sm:text-xs ${
                     parsed?.badgeBg || 'bg-amber-500/15 text-amber-600 border-amber-500/30'
                   }`}
                 >
@@ -216,13 +216,13 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
             </div>
 
             {/* Icon Box */}
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50/90 dark:bg-slate-800/90 border border-sky-100 dark:border-slate-700/80 shadow-inner">
-              <WeatherIcon className={`h-6 w-6 ${parsed?.iconColor || 'text-amber-500'} animate-pulse`} />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+              <WeatherIcon className={`h-6 w-6 ${parsed?.iconColor || 'text-amber-500'}`} />
             </div>
           </div>
 
           {/* Metrics & Controls Bar */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/60 text-xs font-bold text-slate-700 dark:text-slate-300">
+          <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-3 text-xs font-medium text-slate-700 dark:border-slate-800 dark:text-slate-300">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1" title="Humidity">
                 <Droplets className="h-3.5 w-3.5 text-blue-500 shrink-0" />
@@ -240,7 +240,7 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
                 type="button"
                 onClick={handleDetectLocation}
                 disabled={isDetecting}
-                className="flex items-center gap-1 rounded-xl border border-blue-500/20 bg-blue-500/10 px-2 py-1 text-xs font-black uppercase text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition disabled:opacity-50"
+                className="flex items-center gap-1 rounded-lg border border-blue-200 bg-white px-2 py-1 text-xs font-semibold uppercase text-blue-700 transition hover:bg-blue-50 disabled:opacity-50 dark:border-blue-900 dark:bg-slate-900 dark:text-blue-300 dark:hover:bg-slate-800"
                 title="Detect Current GPS Location"
               >
                 <LocateFixed className={`h-3 w-3 text-blue-500 ${isDetecting ? 'animate-spin' : ''}`} />
@@ -251,7 +251,7 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
                 type="button"
                 onClick={() => fetchWeather(currentCoords.lat, currentCoords.lng)}
                 disabled={loading}
-                className="flex h-7 w-7 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition shrink-0"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
                 title="Refresh Weather Data"
               >
                 <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
@@ -260,23 +260,29 @@ export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }
           </div>
         </div>
 
+        {locationError && (
+          <p className="border-b border-rose-200 bg-rose-50 px-4 py-2 text-xs text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300" role="alert">
+            {locationError}
+          </p>
+        )}
+
         {/* ================================================================= */}
         {/* LOWER SECTION: COMPACT GOLD HELPLINE STRIP                        */}
         {/* ================================================================= */}
-        <div className="p-3.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-slate-950 flex flex-col justify-center items-center gap-1.5 border-t border-amber-500/40">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-950/80">
-            24×7 Municipal Helpline
+        <div className="flex flex-col items-center justify-center gap-2 bg-white p-4 text-slate-950 dark:bg-slate-900 dark:text-white">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Need urgent assistance?
           </span>
           <button
             type="button"
             onClick={() => setIsHelpDeskOpen(true)}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 text-amber-300 py-2.5 px-3.5 text-xs sm:text-sm font-black transition shadow-md border border-amber-500/30 group hover:scale-[1.02] active:scale-[0.99] helpline-glow"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#102b45] px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-[#173b5d] sm:text-sm dark:bg-blue-700 dark:hover:bg-blue-600"
             title="Open Emergency Department Helplines"
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-slate-950 font-bold group-hover:animate-bounce">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white">
               <PhoneCall className="h-3.5 w-3.5" />
             </div>
-            <span className="tracking-wider uppercase text-white font-black">EMERGENCY DEPT</span>
+            <span>Municipal emergency helplines</span>
           </button>
         </div>
       </div>

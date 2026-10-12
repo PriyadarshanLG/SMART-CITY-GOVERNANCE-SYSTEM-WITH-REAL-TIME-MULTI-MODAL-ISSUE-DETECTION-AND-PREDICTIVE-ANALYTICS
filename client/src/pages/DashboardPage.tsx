@@ -61,8 +61,9 @@ import type { ComplaintRecord } from '../types/complaint';
 import { WeatherWidget } from '../components/common/WeatherWidget';
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
 import { LocationMapCard } from '../components/common/LocationMapCard';
+import { GoogleMapView } from '../components/common/GoogleMapView';
 import { useLanguage } from '../context/LanguageContext';
-import { fetchLiveAddress, getCurrentPositionAsync } from '../lib/geoHelper';
+import { formatLocationFromCoordinates, getCurrentPositionAsync } from '../lib/geoHelper';
 import { useDepartmentAlerts } from '../lib/alertsStore';
 
 export const ALL_DEPARTMENTS = [
@@ -181,33 +182,42 @@ export function DashboardPage() {
   const [detectedDistrict, setDetectedDistrict] = useState<string>('');
   const [detectedState, setDetectedState] = useState<string>('');
   const [isDetectingGPS, setIsDetectingGPS] = useState(false);
+  const [hasLiveLocation, setHasLiveLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   const handleDetectLiveGPS = async () => {
     setIsDetectingGPS(true);
-    const pos = await getCurrentPositionAsync();
-    setLiveCoords({ lat: pos.lat, lng: pos.lng });
-    const geoInfo = await fetchLiveAddress(pos.lat, pos.lng);
-    setLiveAddress(geoInfo.fullAddress || geoInfo.shortLocation);
-    if (geoInfo.city) setDetectedCity(geoInfo.city);
-    if (geoInfo.district) setDetectedDistrict(geoInfo.district);
-    if (geoInfo.state) setDetectedState(geoInfo.state);
-    setIsDetectingGPS(false);
+    setLocationError('');
+    try {
+      const pos = await getCurrentPositionAsync();
+      setLiveCoords({ lat: pos.lat, lng: pos.lng });
+      setHasLiveLocation(true);
+      setLiveAddress(formatLocationFromCoordinates(pos.lat, pos.lng).fullAddress);
+    } catch (error) {
+      setLocationError(error instanceof Error ? error.message : 'Could not update your location.');
+    } finally {
+      setIsDetectingGPS(false);
+    }
   };
 
   useEffect(() => {
     let isMounted = true;
     void (async () => {
       setIsDetectingGPS(true);
-      const pos = await getCurrentPositionAsync();
-      if (!isMounted) return;
-      setLiveCoords({ lat: pos.lat, lng: pos.lng });
-      const geoInfo = await fetchLiveAddress(pos.lat, pos.lng);
-      if (!isMounted) return;
-      if (geoInfo.fullAddress) setLiveAddress(geoInfo.fullAddress);
-      if (geoInfo.city) setDetectedCity(geoInfo.city);
-      if (geoInfo.district) setDetectedDistrict(geoInfo.district);
-      if (geoInfo.state) setDetectedState(geoInfo.state);
-      setIsDetectingGPS(false);
+      try {
+        const pos = await getCurrentPositionAsync();
+        if (!isMounted) return;
+        setLiveCoords({ lat: pos.lat, lng: pos.lng });
+        setHasLiveLocation(true);
+        if (!isMounted) return;
+        setLiveAddress(formatLocationFromCoordinates(pos.lat, pos.lng).fullAddress);
+      } catch (error) {
+        if (isMounted) {
+          setLocationError(error instanceof Error ? error.message : 'Could not detect your location.');
+        }
+      } finally {
+        if (isMounted) setIsDetectingGPS(false);
+      }
     })();
     return () => {
       isMounted = false;
@@ -418,9 +428,9 @@ export function DashboardPage() {
     return (
       activeDeptComplaints.find((c) => c.complaintId === selectedComplaintId) ||
       activeDeptComplaints[0] ||
-      complaints[0]
+      null
     );
-  }, [activeDeptComplaints, complaints, selectedComplaintId]);
+  }, [activeDeptComplaints, selectedComplaintId]);
 
   // Admin Department-Wise Metrics
   const adminDeptMetrics = useMemo(() => {
@@ -586,7 +596,7 @@ export function DashboardPage() {
     const activeAdminDeptMeta = DEPARTMENT_METADATA.find((d) => d.id === selectedAdminDept);
 
     return (
-      <div className="dashboard-shell min-h-screen w-full bg-slate-900 text-slate-100 font-sans pb-16 transition-colors duration-300">
+      <div className={`dashboard-shell admin-dashboard min-h-screen w-full bg-slate-950 text-slate-100 font-sans pb-16 transition-colors duration-300 ${darkMode ? 'admin-dashboard-dark' : 'admin-dashboard-light'}`}>
         {/* Top Government Accent Strip */}
         <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600 shadow-sm" />
 
@@ -603,22 +613,22 @@ export function DashboardPage() {
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                    🏛️ Municipal Commissioner Command Desk
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                    Municipal administration
                   </span>
-                  <span className="rounded-full bg-indigo-500/10 px-1.5 py-0.2 text-[9px] font-extrabold uppercase text-indigo-400 border border-indigo-500/20">
-                    Admin Oversight
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-400 border border-emerald-500/20">
+                    City overview
                   </span>
                 </div>
-                <h1 className="text-sm sm:text-base font-black text-white">
-                  Smart City Governance & Inter-Departmental Control Room
+                <h1 className="text-sm sm:text-base font-semibold text-white">
+                  Operations dashboard
                 </h1>
               </div>
             </div>
 
             {/* Right: Department Filter Tabs + Theme + Notifications + Sign Out */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <LanguageSwitcher variant="dark" />
+              <LanguageSwitcher variant={darkMode ? 'dark' : 'light'} />
               {/* Button 1: Report Complaint */}
               <button
                 type="button"
@@ -669,7 +679,6 @@ export function DashboardPage() {
                   Admin Desk
                 </button>
               </div>
-
               {/* Notifications */}
               <div className="relative">
                 <button
@@ -707,6 +716,8 @@ export function DashboardPage() {
                 type="button"
                 onClick={() => setDarkMode(!darkMode)}
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 transition"
+                title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                aria-label={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
               </button>
@@ -727,10 +738,10 @@ export function DashboardPage() {
           </div>
 
           {/* Quick Department Switcher Strip */}
-          <div className="border-t border-slate-800/80 bg-slate-950/60 px-4 py-2 sm:px-6 lg:px-8 overflow-x-auto">
+          <div className="border-t border-slate-800/80 bg-slate-950 px-4 py-2 sm:px-6 lg:px-8 overflow-x-auto">
             <div className="mx-auto flex max-w-7xl items-center gap-2 text-xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
-                Select View:
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+              Departments
               </span>
 
               <button
@@ -738,12 +749,12 @@ export function DashboardPage() {
                 onClick={() => setSelectedAdminDept('all')}
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-bold transition shrink-0 ${
                   selectedAdminDept === 'all'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ?                     'bg-indigo-500 text-white shadow-sm'
                     : 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800'
                 }`}
               >
                 <Layers className="h-3.5 w-3.5" />
-                <span>🏛️ All 4 Departments Overview</span>
+                <span>All departments</span>
               </button>
 
               {DEPARTMENT_METADATA.map((dept) => {
@@ -778,6 +789,22 @@ export function DashboardPage() {
         {/* ------------------------------------------------------------------- */}
         <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 space-y-6">
           
+          <section className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 to-slate-900/70 px-5 py-5 sm:px-7 sm:py-6">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-300">City operations · Hassan</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Department performance</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                  Review incoming reports, monitor field progress, and compare resolution across municipal teams.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 self-start rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1.5 text-xs text-slate-300 sm:self-auto">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Live complaint data
+              </div>
+            </div>
+          </section>
+
           {/* Admin Notice Success Banner */}
           {adminNoticeSuccess && (
             <motion.div
@@ -793,10 +820,10 @@ export function DashboardPage() {
           )}
 
           {/* City-Wide Executive KPI Summary Banner */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Total Grievances
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                Total complaints
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-white">{totalCityComplaints}</span>
@@ -805,8 +832,8 @@ export function DashboardPage() {
             </div>
 
             <div className="rounded-2xl border border-amber-900/30 bg-amber-950/20 p-4">
-              <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
-                ⚡ Work In Progress
+              <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider block">
+                In progress
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-amber-400">{ongoingCityCount}</span>
@@ -815,8 +842,8 @@ export function DashboardPage() {
             </div>
 
             <div className="rounded-2xl border border-emerald-900/30 bg-emerald-950/20 p-4">
-              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
-                ✅ Solved with Proof
+              <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider block">
+                Resolved
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-emerald-400">{solvedCityCount}</span>
@@ -825,8 +852,8 @@ export function DashboardPage() {
             </div>
 
             <div className="rounded-2xl border border-blue-900/30 bg-blue-950/20 p-4">
-              <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider block">
-                ⏳ Pending Triage
+              <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider block">
+                Awaiting action
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-blue-400">{pendingCityCount}</span>
@@ -834,9 +861,9 @@ export function DashboardPage() {
               </div>
             </div>
 
-            <div className="col-span-2 sm:col-span-1 rounded-2xl border border-indigo-900/30 bg-indigo-950/20 p-4">
-              <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">
-                🎯 How Fast Issues Get Fixed
+            <div className="col-span-2 xl:col-span-1 rounded-2xl border border-indigo-900/30 bg-indigo-950/20 p-4">
+              <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wider block">
+                Resolution rate
               </span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-indigo-400">{overallResolutionRate}%</span>
@@ -852,38 +879,38 @@ export function DashboardPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                 <div>
-                  <h2 className="text-lg font-black text-white flex items-center gap-2">
-                    <span>Municipal Departments Control Units</span>
-                    <span className="rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-bold text-indigo-400 border border-indigo-500/20">
+                  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span>Departments</span>
+                    <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-300 border border-slate-700">
                       4 Departments Active
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Click on any department card to inspect complaints, ongoing work, solved status, and officer dispatch.
+                  <p className="text-xs text-slate-400 mt-1">
+                    Select a department to review its complaint queue and resolution performance.
                   </p>
                 </div>
               </div>
 
               {/* 4 Rich Department Boxes Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                 {adminDeptMetrics.map((dept) => (
                   <motion.div
                     key={dept.id}
                     whileHover={{ scale: 1.01 }}
-                    className="rounded-3xl border border-slate-800 bg-slate-950 p-6 shadow-xl space-y-4 hover:border-indigo-500/60 transition cursor-pointer group"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-sm space-y-4 hover:border-indigo-500/50 hover:bg-slate-900 transition cursor-pointer group"
                     onClick={() => setSelectedAdminDept(dept.id)}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3 border-b border-slate-800/80 pb-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 border border-slate-800 text-2xl shadow-md group-hover:scale-110 transition-transform">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 border border-slate-800 text-xl">
                           {dept.icon}
                         </div>
                         <div>
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400 block">
-                            Department Unit
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                          Department
                           </span>
-                          <h3 className="text-base font-black text-white group-hover:text-indigo-400 transition">
+                          <h3 className="text-base font-semibold text-white group-hover:text-indigo-300 transition">
                             {dept.id}
                           </h3>
                         </div>
@@ -893,12 +920,12 @@ export function DashboardPage() {
                         <span className="text-xs font-mono font-black text-emerald-400 block">
                           {dept.resolutionRate}%
                         </span>
-                        <span className="text-[10px] text-slate-500 uppercase">Speed</span>
+                        <span className="text-[10px] text-slate-500 uppercase">Resolved</span>
                       </div>
                     </div>
 
                     {/* Officer & Jurisdiction Info */}
-                    <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800/60 text-xs space-y-1">
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs space-y-1.5">
                       <div className="flex items-center justify-between text-slate-300">
                         <span className="text-slate-500">In-Charge Officer:</span>
                         <span className="font-bold text-white">{dept.officer}</span>
@@ -912,13 +939,13 @@ export function DashboardPage() {
                     {/* Sub-Areas / Functions Covered */}
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
-                        Jurisdiction & Problem Scope:
+                        Handles:
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {dept.subAreas.map((area, i) => (
                           <span
                             key={i}
-                            className="rounded-xl bg-slate-900 border border-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-300"
+                            className="rounded-lg bg-slate-950 border border-slate-800 px-2.5 py-1 text-[10px] font-medium text-slate-400"
                           >
                             {area}
                           </span>
@@ -927,7 +954,7 @@ export function DashboardPage() {
                     </div>
 
                     {/* Complaints Metrics Strip (Total, Ongoing, Solved, Pending) */}
-                    <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-center">
+                    <div className="grid grid-cols-4 gap-2 pt-3 border-t border-slate-800/80 text-center">
                       <div className="rounded-xl bg-slate-900/80 p-2 border border-slate-800">
                         <span className="text-[10px] text-slate-500 block uppercase">Total</span>
                         <span className="text-base font-black text-white">{dept.total}</span>
@@ -1394,6 +1421,19 @@ export function DashboardPage() {
   // Section 2: Other complaints (1, 2, 3...) -> [Push to respective department]
   // =========================================================================
   if (isOfficerView) {
+    const departmentResolvedCount = activeDeptComplaints.filter((item) =>
+      ['Resolved', 'Completed', 'Citizen Verified'].includes(item.status)
+    ).length;
+    const departmentInProgressCount = activeDeptComplaints.filter((item) =>
+      ['Work In Progress', 'Work Started'].includes(item.status)
+    ).length;
+    const departmentPendingCount = activeDeptComplaints.filter((item) =>
+      ['Pending', 'Submitted', 'ML Classified', 'Department Assigned', 'Officer Assigned'].includes(item.status)
+    ).length;
+    const departmentHighPriorityCount = activeDeptComplaints.filter((item) =>
+      item.priority === 'High' && !['Resolved', 'Completed', 'Citizen Verified'].includes(item.status)
+    ).length;
+
     return (
       <div className="dashboard-shell min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-300">
         {/* Top Government Accent Strip */}
@@ -1412,11 +1452,11 @@ export function DashboardPage() {
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                    JanSeva · Department Portal
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+                    JanSeva · Department services
                   </span>
-                  <span className="rounded-full bg-indigo-500/10 px-1.5 py-0.2 text-[9px] font-extrabold uppercase text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                    Official Console
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    Staff portal
                   </span>
                 </div>
 
@@ -1425,7 +1465,7 @@ export function DashboardPage() {
                   <select
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white bg-transparent outline-none cursor-pointer pr-5 appearance-none hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                    className="max-w-[min(58vw,26rem)] truncate text-sm sm:text-base font-semibold text-slate-900 dark:text-white bg-transparent outline-none cursor-pointer pr-5 appearance-none hover:text-indigo-600 dark:hover:text-indigo-400 transition"
                   >
                     {ALL_DEPARTMENTS.map((dept) => (
                       <option key={dept} value={dept} className="dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -1567,31 +1607,59 @@ export function DashboardPage() {
         {/* ------------------------------------------------------------------- */}
         {/* MAIN BODY: DEPARTMENT OPERATIONAL VIEW (Per Sketch)                 */}
         {/* ------------------------------------------------------------------- */}
-        <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 space-y-8">
-          
+        <main className="mx-auto max-w-7xl space-y-5 px-4 pt-6 sm:px-6 lg:px-8">
+          <section className="rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm sm:px-7 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Department workspace</p>
+                <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Service queue</h1>
+                <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">{selectedDepartment} · Hassan district</p>
+              </div>
+              <p className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Queue updates as complaints are filed
+              </p>
+            </div>
+          </section>
+
+          <section aria-label="Department complaint summary" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Assigned', value: activeDeptComplaints.length, color: 'text-slate-900 dark:text-white', accent: 'bg-slate-400' },
+              { label: 'Awaiting action', value: departmentPendingCount, color: 'text-blue-700 dark:text-blue-300', accent: 'bg-blue-500' },
+              { label: 'In progress', value: departmentInProgressCount, color: 'text-amber-700 dark:text-amber-300', accent: 'bg-amber-500' },
+              { label: 'High priority', value: departmentHighPriorityCount, color: 'text-rose-700 dark:text-rose-300', accent: 'bg-rose-500' },
+            ].map((metric) => (
+              <div key={metric.label} className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <span className={`absolute inset-y-0 left-0 w-1 ${metric.accent}`} />
+                <p className="pl-1 text-xs font-medium text-slate-500 dark:text-slate-400">{metric.label}</p>
+                <p className={`mt-2 pl-1 text-2xl font-semibold tabular-nums ${metric.color}`}>{metric.value}</p>
+              </div>
+            ))}
+          </section>
+
           {/* ================================================================= */}
           {/* SECTION 1: COMPLAINTS (1, 2, 3...) & 1. DETAILS                   */}
           {/* ================================================================= */}
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm space-y-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Complaints</span>
-                  <span className="rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                    {activeDeptComplaints.length} Assigned
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Complaint queue</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    {activeDeptComplaints.length}
                   </span>
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Citizen grievances logged under {selectedDepartment}
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Review new reports and update field-work progress.
                 </p>
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/20">
-                  ● Work in Progress
+                <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 font-medium border border-amber-500/20">
+                  In progress · {departmentInProgressCount}
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-                  ● Completed Proof
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium border border-emerald-500/20">
+                  Resolved · {departmentResolvedCount}
                 </span>
               </div>
             </div>
@@ -1655,7 +1723,7 @@ export function DashboardPage() {
               </div>
 
               {/* RIGHT COLUMN: 1. DETAILS BOX WITH ON PROCESS & COMPLETED (SHARE IMAGE) */}
-              <div className="lg:col-span-7 rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 p-6 space-y-5">
+              <div className="lg:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 p-5 space-y-5">
                 {activeSelectedComplaint ? (
                   <>
                     <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -1771,7 +1839,19 @@ export function DashboardPage() {
                     </div>
                   </>
                 ) : (
-                  <p className="text-xs text-slate-500 text-center py-12">Select a complaint from the queue.</p>
+                  <div className="flex min-h-56 flex-col items-center justify-center px-5 py-10 text-center">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <p className="mt-4 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {activeDeptComplaints.length ? 'Choose a complaint to review' : 'No complaints in this queue'}
+                    </p>
+                    <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                      {activeDeptComplaints.length
+                        ? 'The report details, location, and available actions will appear here.'
+                        : `New reports assigned to ${selectedDepartment} will appear here.`}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -2261,11 +2341,11 @@ export function DashboardPage() {
       {/* ------------------------------------------------------------------- */}
       {/* CITIZEN HEADER (Clean Single-Row Layout: Branding | Nav Items | Profile, Sun/Moon, Logout) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-[#0c2744] text-white shadow-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:px-8 gap-4 flex-wrap">
+      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#102b45] text-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           {/* Left: Branding & City Info */}
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-white/15 text-white shrink-0 transition hover:bg-white/20 hover:scale-105">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white shrink-0">
               <Building2 className="h-5 w-5" />
             </div>
 
@@ -2283,14 +2363,14 @@ export function DashboardPage() {
           </div>
 
           {/* Center/Right Navigation Bar per Wireframe Sketch */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex flex-wrap items-center gap-1 rounded-xl bg-white/10 p-1 border border-white/10">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex flex-wrap items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
               <button
                 type="button"
                 onClick={() => setActiveTab('overview')}
                 className={`nav-chip px-3.5 py-1.5 rounded-lg text-xs font-semibold ${
                   activeTab === 'overview'
-                    ? 'bg-white text-[#0c2744] shadow-sm'
+                    ? 'bg-white text-[#102b45] shadow-sm'
                     : 'text-slate-200 hover:bg-white/10'
                 }`}
               >
@@ -2321,10 +2401,10 @@ export function DashboardPage() {
 
             <a
               href="tel:18004252026"
-              className="helpline-glow inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-orange-500 text-white hover:bg-orange-400 transition shrink-0"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15 shrink-0"
               title="Toll-Free Emergency Grievance Helpline"
             >
-              <PhoneCall className="h-3.5 w-3.5" />
+              <PhoneCall className="h-3.5 w-3.5 text-amber-300" />
               <span>{t('nav.helpline')}</span>
             </a>
 
@@ -2334,7 +2414,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => setIsProfileModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-white/20 bg-white/5 text-white hover:bg-white/10 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
               title="View Citizen Profile & Municipal Registration"
             >
               <User className="h-3.5 w-3.5 text-orange-300" />
@@ -2344,7 +2424,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/5 text-white hover:bg-white/10 transition"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-white transition hover:bg-white/10"
               title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {darkMode ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-200" />}
@@ -2356,7 +2436,7 @@ export function DashboardPage() {
                 logout();
                 navigate('/');
               }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 text-red-200 hover:bg-red-500/25 transition"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-white transition hover:border-red-300/30 hover:bg-red-500/15 hover:text-red-200"
               title="Sign Out"
             >
               <LogOut className="h-4 w-4" />
@@ -2368,21 +2448,21 @@ export function DashboardPage() {
       {/* ------------------------------------------------------------------- */}
       {/* HIGH-VISIBILITY DIMMED RED SCROLLING ALERT TICKER LINE BELOW HEADER */}
       {/* ------------------------------------------------------------------- */}
-      <div className="w-full bg-[#071527] border-b border-white/10 py-2 px-4 flex items-center gap-3 overflow-hidden">
-        <div className="flex items-center gap-1.5 shrink-0 bg-orange-500 text-white px-3 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider z-20">
-          <AlertTriangle className="h-3.5 w-3.5" />
+      <div className="flex w-full items-center gap-3 overflow-hidden border-b border-slate-200 bg-white px-4 py-2 dark:border-slate-800 dark:bg-slate-900">
+        <div className="z-20 flex shrink-0 items-center gap-1.5 rounded-md bg-amber-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:bg-amber-400/10 dark:text-amber-300">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-300" />
           <span>{t('alerts')}</span>
         </div>
 
         <div className="overflow-hidden flex-1 relative flex items-center z-10">
-          <div className="animate-marquee flex items-center gap-6 text-xs font-semibold text-slate-200 tracking-wide">
+          <div className="animate-marquee flex items-center gap-6 text-xs font-medium tracking-wide text-slate-600 dark:text-slate-300">
             <div className="flex items-center gap-6 shrink-0">
               {alerts.map((alt) => (
                 <span key={`ticker-1-${alt.id}`} className="flex items-center gap-2">
                   <span>
-                    {alt.icon || '🚨'} <strong className="text-orange-400">[{alt.department.split(' ')[0]}]:</strong> {alt.message}
+                    {alt.icon || '•'} <strong className="text-amber-700 dark:text-amber-300">[{alt.department.split(' ')[0]}]:</strong> {alt.message}
                   </span>
-                  <span className="text-orange-500">•</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
                 </span>
               ))}
             </div>
@@ -2390,9 +2470,9 @@ export function DashboardPage() {
               {alerts.map((alt) => (
                 <span key={`ticker-2-${alt.id}`} className="flex items-center gap-2">
                   <span>
-                    {alt.icon || '🚨'} <strong className="text-orange-400">[{alt.department.split(' ')[0]}]:</strong> {alt.message}
+                    {alt.icon || '•'} <strong className="text-amber-700 dark:text-amber-300">[{alt.department.split(' ')[0]}]:</strong> {alt.message}
                   </span>
-                  <span className="text-orange-500">•</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
                 </span>
               ))}
             </div>
@@ -2403,7 +2483,7 @@ export function DashboardPage() {
       {/* ------------------------------------------------------------------- */}
       {/* CITIZEN BODY: TWO COLUMN LAYOUT                                     */}
       {/* ------------------------------------------------------------------- */}
-      <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 space-y-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 pt-8 sm:px-6 lg:px-8">
         
         {/* ------------------------------------------------------------------- */}
         {/* STANDALONE WELCOME BOX & STANDALONE WEATHER BOX (OUTSIDE SIDE-BY-SIDE) */}
@@ -2412,18 +2492,18 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: 'easeOut' }}
-          className="flex flex-col lg:flex-row items-stretch gap-5"
+          className="flex flex-col items-stretch gap-5 lg:flex-row"
         >
           {/* Left: Standalone Welcome Box */}
           <div className="flex-1 min-w-0">
-            <div className="hero-shell pl-6 pr-5 py-6 sm:pl-8 sm:pr-6 sm:py-7 h-full flex flex-col justify-center">
+            <div className="hero-shell flex h-full flex-col justify-center px-5 py-6 sm:px-7 sm:py-7">
               <div className="hero-content flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="hero-brand text-[10px] font-semibold uppercase">
                       {t('brand.portal')}
                     </span>
-                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 live-dot" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   </div>
 
                   <div className="space-y-1.5">
@@ -2460,23 +2540,17 @@ export function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="w-full sm:w-[270px] lg:w-[290px] shrink-0 flex justify-end">
+                <div className="flex w-full shrink-0 flex-col items-end sm:w-[270px] lg:w-[290px]">
                   <div className="map-panel relative group w-full h-[180px] sm:h-[195px] lg:h-[210px]">
-                    <iframe
-                      title="Live Citizen Map"
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      scrolling="no"
-                      marginHeight={0}
-                      marginWidth={0}
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${liveCoords.lng - 0.015},${liveCoords.lat - 0.015},${liveCoords.lng + 0.015},${liveCoords.lat + 0.015}&layer=mapnik&marker=${liveCoords.lat},${liveCoords.lng}`}
-                      className="w-full h-full"
+                    <GoogleMapView
+                      center={liveCoords}
+                      markerTitle="Your current location"
+                      className="h-full w-full"
                     />
 
                     <div className="map-badge">
-                      <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      <span>{t('map.live')}</span>
+                      <span className={`h-1.5 w-1.5 rounded-full ${hasLiveLocation ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                      <span>{hasLiveLocation ? t('map.live') : isDetectingGPS ? t('map.detecting') : 'Location unavailable'}</span>
                     </div>
 
                     <button
@@ -2489,6 +2563,11 @@ export function DashboardPage() {
                       <span>{isDetectingGPS ? t('map.detecting') : t('map.detect')}</span>
                     </button>
                   </div>
+                  {locationError && (
+                    <p className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300" role="alert">
+                      {locationError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -2499,14 +2578,16 @@ export function DashboardPage() {
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.12, ease: 'easeOut' }}
-            className="w-full lg:w-[320px] shrink-0 flex flex-col justify-stretch"
+            className="flex w-full shrink-0 flex-col justify-stretch lg:w-[320px]"
           >
             <WeatherWidget
               lat={liveCoords.lat}
               lng={liveCoords.lng}
               onLocationUpdate={(newLat, newLng) => {
                 setLiveCoords({ lat: newLat, lng: newLng });
-                setLiveAddress(`Central Hassan Sector (Lat ${newLat.toFixed(4)}°, Lng ${newLng.toFixed(4)}°)`);
+                setHasLiveLocation(true);
+                setLiveAddress(formatLocationFromCoordinates(newLat, newLng).fullAddress);
+                setLocationError('');
               }}
             />
           </motion.div>
@@ -2517,22 +2598,22 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+          className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12"
         >
           
           {/* Left Column: Actions & District Summary */}
           <div className="lg:col-span-5 space-y-4">
             
             {/* District Summary */}
-            <div className="glass-card p-6 space-y-5">
+            <div className="glass-card space-y-5 p-5 sm:p-6">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
                     <MapPinned className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="text-base font-black text-slate-900 dark:text-white">
-                      📍 {t('district.title', { district: userDistrict })}
+                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {t('district.title', { district: userDistrict })}
                     </h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">{t('district.sub')}</p>
                   </div>
@@ -2582,7 +2663,7 @@ export function DashboardPage() {
             </div>
 
             {/* Right Side Pin Location Widget per Sketch */}
-            <div className="glass-card p-6 space-y-4">
+            <div className="glass-card space-y-4 p-5 sm:p-6">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
@@ -2595,7 +2676,7 @@ export function DashboardPage() {
                     <p className="text-[10px] text-slate-500 dark:text-slate-400">{t('gps.sub')}</p>
                   </div>
                 </div>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
               </div>
 
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3.5 space-y-2 text-xs">
@@ -2622,10 +2703,11 @@ export function DashboardPage() {
             <div id="recent-complaints-section" className="glass-card p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
                     <span>{t('recent.title')}</span>
-                    <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                      📍 {userCity}
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      <MapPin className="h-3 w-3" />
+                      {userCity}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -2681,10 +2763,10 @@ export function DashboardPage() {
                     // Ongoing = Yellow / Amber (25% transparency)
                     // Completed / Solved = Green (25% transparency)
                     const cardBgStyle = isSolved
-                      ? 'bg-emerald-50 dark:bg-emerald-950/35 border-emerald-200 dark:border-emerald-800/60 hover:border-emerald-400'
+                      ? 'border-slate-200 border-l-emerald-500 dark:border-slate-700 dark:border-l-emerald-500'
                       : isOngoing
-                      ? 'bg-amber-50 dark:bg-amber-950/35 border-amber-200 dark:border-amber-800/60 hover:border-amber-400'
-                      : 'bg-rose-50 dark:bg-rose-950/35 border-rose-200 dark:border-rose-800/60 hover:border-rose-400';
+                      ? 'border-slate-200 border-l-amber-500 dark:border-slate-700 dark:border-l-amber-400'
+                      : 'border-slate-200 border-l-rose-500 dark:border-slate-700 dark:border-l-rose-400';
 
                     const statusPillStyle = isSolved
                       ? 'bg-emerald-600 text-white border-emerald-400/40 font-black'
@@ -2705,16 +2787,16 @@ export function DashboardPage() {
                       <div
                         key={item.complaintId}
                         onClick={() => navigate(`/complaints/${item.complaintId}`)}
-                        className={`complaint-row rounded-2xl border p-3.5 shadow-sm hover:shadow-lg cursor-pointer group ${cardBgStyle}`}
+                        className={`complaint-row group cursor-pointer rounded-xl border border-l-4 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md dark:bg-slate-900 ${cardBgStyle}`}
                       >
                         <div className="flex items-center gap-3">
                           
                           {/* Image Thumbnail inside the box */}
-                          <div className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-xl overflow-hidden shadow-sm shrink-0 border border-white/50 bg-slate-900 group-hover:scale-105 transition-transform duration-200">
+                          <div                           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-sm sm:h-16 sm:w-16 dark:border-slate-700 dark:bg-slate-800">
                             <img
                               src={displayImage}
                               alt={item.title}
-                              className="w-full h-full object-cover"
+                              className="h-full w-full object-cover"
                             />
                             <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[8px] font-black text-white text-center py-0.5 px-0.5 truncate">
                               {imageBadgeText}
@@ -2740,7 +2822,7 @@ export function DashboardPage() {
                               </span>
                             </div>
 
-                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1">
+                            <h4 className="line-clamp-2 text-xs font-semibold leading-5 text-slate-900 transition group-hover:text-blue-700 sm:text-sm dark:text-white dark:group-hover:text-blue-300">
                               {item.title}
                             </h4>
 

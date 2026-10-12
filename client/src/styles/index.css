@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
-@import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
 @tailwind components;
@@ -82,41 +81,11 @@ h1, h2, h3, h4, h5, h6,
 .hero-shell {
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+  border-radius: 20px;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
   min-height: 0;
-  transition: box-shadow 0.35s ease, transform 0.35s ease;
-}
-
-.hero-shell:hover {
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.1);
-}
-
-.hero-shell::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: linear-gradient(180deg, #ea580c 0%, #0c2744 55%, #059669 100%);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.hero-shell::after {
-  content: '';
-  position: absolute;
-  right: -50px;
-  top: -70px;
-  width: 240px;
-  height: 240px;
-  background: radial-gradient(circle, rgba(14, 116, 166, 0.14), transparent 68%);
-  animation: floatOrb 7s ease-in-out infinite;
-  pointer-events: none;
 }
 
 .hero-content {
@@ -128,11 +97,11 @@ h1, h2, h3, h4, h5, h6,
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 9999px;
   padding: 0.35rem 0.75rem;
-  color: #c2410c;
+  color: #475569;
 }
 
 .hero-title {
@@ -256,7 +225,6 @@ h1, h2, h3, h4, h5, h6,
 .dashboard-shell {
   position: relative;
   overflow: hidden;
-  background: #eef1f6;
 }
 
 .dark .dashboard-shell {
@@ -299,6 +267,133 @@ h1, h2, h3, h4, h5, h6,
   height: 220px;
   background: radial-gradient(circle, rgba(96, 165, 250, 0.18), transparent 60%);
   pointer-events: none;
+}
+
+.admin-dashboard-light {
+  color-scheme: light;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.admin-dashboard-light [class*="bg-slate-950"] {
+  background-color: #fff !important;
+}
+
+.admin-dashboard-light [class*="bg-slate-900"] {
+  background-color: #f8fafc !important;
+}
+
+.admin-dashboard-light [class*="bg-slate-800"] {
+  background-color: #f1f5f9 !important;
+}
+
+.admin-dashboard-light [class*="from-slate-900"] {
+  background-image: none !important;
+  background-color: #fff !important;
+}
+
+.admin-dashboard-light [class*="border-slate-800"],
+.admin-dashboard-light [class*="border-slate-700"] {
+  border-color: #cbd5e1 !important;
+}
+
+.admin-dashboard-light [class~="text-white"]:not([class*="bg-"]) {
+  color: #0f172a !important;
+}
+
+.admin-dashboard-light button [class~="text-white"] {
+  color: #fff !important;
+}
+
+.admin-dashboard-light [class~="text-slate-100"],
+.admin-dashboard-light [class~="text-slate-200"] {
+  color: #1e293b !important;
+}
+
+.admin-dashboard-light [class~="text-slate-300"] {
+  color: #334155 !important;
+}
+
+.admin-dashboard-light [class~="text-slate-400"] {
+  color: #64748b !important;
+}
+
+.admin-dashboard-light [class~="text-indigo-300"] {
+  color: #4338ca !important;
+}
+
+.admin-dashboard-light [class*="hover:bg-slate-"]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+.admin-dashboard-light [class*="bg-amber-950"],
+.admin-dashboard-light [class*="bg-amber-900"] {
+  background-color: #fff7ed !important;
+}
+
+.admin-dashboard-light [class*="border-amber-900"] {
+  border-color: #fed7aa !important;
+}
+
+.admin-dashboard-light [class*="text-amber-400"],
+.admin-dashboard-light [class*="text-amber-500"] {
+  color: #b45309 !important;
+}
+
+.admin-dashboard-light [class*="bg-emerald-950"],
+.admin-dashboard-light [class*="bg-emerald-900"] {
+  background-color: #ecfdf5 !important;
+}
+
+.admin-dashboard-light [class*="border-emerald-900"] {
+  border-color: #a7f3d0 !important;
+}
+
+.admin-dashboard-light [class*="text-emerald-300"],
+.admin-dashboard-light [class*="text-emerald-400"] {
+  color: #047857 !important;
+}
+
+.admin-dashboard-light [class*="bg-blue-950"],
+.admin-dashboard-light [class*="bg-blue-900"] {
+  background-color: #eff6ff !important;
+}
+
+.admin-dashboard-light [class*="border-blue-900"] {
+  border-color: #bfdbfe !important;
+}
+
+.admin-dashboard-light [class*="text-blue-300"],
+.admin-dashboard-light [class*="text-blue-400"] {
+  color: #1d4ed8 !important;
+}
+
+.admin-dashboard-light [class*="bg-indigo-950"],
+.admin-dashboard-light [class*="bg-indigo-900"] {
+  background-color: #eef2ff !important;
+}
+
+.admin-dashboard-light [class*="border-indigo-900"] {
+  border-color: #c7d2fe !important;
+}
+
+.admin-dashboard-light [class*="text-indigo-300"],
+.admin-dashboard-light [class*="text-indigo-400"] {
+  color: #4338ca !important;
+}
+
+.admin-dashboard-light [class*="bg-red-950"],
+.admin-dashboard-light [class*="bg-red-900"] {
+  background-color: #fef2f2 !important;
+}
+
+.admin-dashboard-light [class*="border-red-900"] {
+  border-color: #fecaca !important;
+}
+
+.admin-dashboard-light [class*="text-red-300"],
+.admin-dashboard-light [class*="text-red-400"] {
+  color: #b91c1c !important;
 }
 
 .dashboard-pill {
@@ -667,7 +762,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-shell::after,
+
   .hero-cta-primary::after,
   .live-dot,
   .helpline-glow,
