@@ -604,14 +604,14 @@ export function DashboardPage() {
         {/* ADMIN HEADER                                                        */}
         {/* ------------------------------------------------------------------- */}
         <header className="dashboard-panel sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-xl transition-colors">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-3 py-3 lg:flex-row lg:items-center lg:justify-between sm:px-6 lg:px-8">
             {/* Left: Administration Branding */}
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-700 text-white font-bold shadow-lg shadow-indigo-500/25">
                 <Landmark className="h-5 w-5" />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                     Municipal administration
@@ -620,23 +620,26 @@ export function DashboardPage() {
                     City overview
                   </span>
                 </div>
-                <h1 className="text-sm sm:text-base font-semibold text-white">
+                <h1 className="truncate text-sm font-semibold text-white sm:text-base">
                   Operations dashboard
                 </h1>
               </div>
             </div>
 
             {/* Right: Department Filter Tabs + Theme + Notifications + Sign Out */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <LanguageSwitcher variant={darkMode ? 'dark' : 'light'} />
+            <div className="grid grid-cols-4 items-center gap-2 lg:flex lg:flex-nowrap lg:justify-end lg:gap-2">
+              <div className="col-span-2 justify-self-start lg:col-span-1">
+                <LanguageSwitcher variant={darkMode ? 'dark' : 'light'} />
+              </div>
               {/* Button 1: Report Complaint */}
               <button
                 type="button"
                 onClick={() => navigate('/report')}
-                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
+                aria-label={t('admin.report')}
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg bg-blue-600 p-0 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 transition hover:bg-blue-700 lg:h-auto lg:w-auto lg:gap-1.5 lg:rounded-xl lg:px-3 lg:py-1.5"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t('admin.report')}</span>
+                <span className="hidden lg:inline">{t('admin.report')}</span>
               </button>
 
               {/* Button 2: Quick Demo Data Toggle */}
@@ -649,15 +652,15 @@ export function DashboardPage() {
                     clearAllComplaints();
                   }
                 }}
-                className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-0 text-xs font-bold text-indigo-400 shadow-sm transition hover:bg-indigo-500/20 lg:h-auto lg:w-auto lg:gap-1.5 lg:rounded-xl lg:px-3 lg:py-1.5"
                 title="Click to toggle sample complaints across all 4 departments for demo preview"
               >
                 <Sparkles className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
-                <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
+                <span className="hidden lg:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
               </button>
 
               {/* Button 3: View Role Switcher */}
-              <div className="hidden lg:flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+              <div className="hidden xl:flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard/citizen')}
@@ -684,17 +687,18 @@ export function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-800 transition"
+                  aria-label="Open administration alerts"
+                  className="flex h-9 w-9 items-center justify-center justify-self-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 p-0 text-xs font-bold text-slate-200 transition hover:bg-slate-800 lg:h-auto lg:w-auto lg:rounded-xl lg:px-3 lg:py-1.5"
                 >
                   <BellRing className="h-4 w-4 text-amber-500" />
-                  <span className="hidden sm:inline">Alerts</span>
+                  <span className="hidden lg:inline">Alerts</span>
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white">
                     {complaints.length}
                   </span>
                 </button>
 
                 {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-800 bg-slate-900 p-3 shadow-2xl z-50 animate-in fade-in duration-150">
+                  <div className="fixed inset-x-3 bottom-4 z-[60] max-h-[60dvh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-3 shadow-2xl animate-in fade-in duration-150 sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[min(70vh,32rem)] sm:w-80">
                     <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                       <span className="text-xs font-bold text-white">Administration Alerts</span>
                       <span className="text-[10px] text-slate-400">City SLA Status</span>
@@ -715,7 +719,7 @@ export function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDarkMode(!darkMode)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 transition"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-slate-800 bg-slate-900 text-slate-300 transition hover:bg-slate-800"
                 title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 aria-label={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
@@ -729,7 +733,7 @@ export function DashboardPage() {
                   logout();
                   navigate('/');
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-900/40 bg-red-950/30 text-red-400 hover:bg-red-900/50 transition"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-red-900/40 bg-red-950/30 text-red-400 transition hover:bg-red-900/50"
                 title="Sign Out"
               >
                 <LogOut className="h-4 w-4" />
@@ -791,7 +795,7 @@ export function DashboardPage() {
           
           <section className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 to-slate-900/70 px-5 py-5 sm:px-7 sm:py-6">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-300">City operations · Hassan</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Department performance</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
@@ -1443,16 +1447,16 @@ export function DashboardPage() {
         {/* HEADER: "departments" & "Notifications" (Per Sketch)                 */}
         {/* ------------------------------------------------------------------- */}
         <header className="dashboard-panel sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-3 py-3 xl:flex-row xl:items-center xl:justify-between sm:px-6 lg:px-8">
             {/* Left: Department Logo & Department Selector */}
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white font-bold shadow-md shadow-indigo-500/25">
                 <Landmark className="h-5 w-5" />
               </div>
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+                  <span className="hidden text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 sm:inline">
                     JanSeva · Department services
                   </span>
                   <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
@@ -1465,7 +1469,7 @@ export function DashboardPage() {
                   <select
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className="max-w-[min(58vw,26rem)] truncate text-sm sm:text-base font-semibold text-slate-900 dark:text-white bg-transparent outline-none cursor-pointer pr-5 appearance-none hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                    className="max-w-[min(68vw,26rem)] truncate text-sm font-semibold text-slate-900 dark:text-white bg-transparent outline-none cursor-pointer pr-5 appearance-none hover:text-indigo-600 dark:hover:text-indigo-400 transition sm:max-w-[min(58vw,26rem)] sm:text-base"
                   >
                     {ALL_DEPARTMENTS.map((dept) => (
                       <option key={dept} value={dept} className="dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -1479,16 +1483,19 @@ export function DashboardPage() {
             </div>
 
             {/* Right: Notifications & Actions */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <LanguageSwitcher variant="dark" />
+            <div className="grid grid-cols-4 items-center gap-2 xl:flex xl:flex-nowrap xl:justify-end xl:gap-2">
+              <div className="col-span-2 justify-self-start xl:col-span-1">
+                <LanguageSwitcher variant={darkMode ? 'dark' : 'light'} />
+              </div>
               {/* Button 1: Report Complaint */}
               <button
                 type="button"
                 onClick={() => navigate('/report')}
-                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20"
+                aria-label={t('admin.report')}
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg bg-blue-600 p-0 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 transition hover:bg-blue-700 xl:h-auto xl:w-auto xl:gap-1.5 xl:rounded-xl xl:px-3 xl:py-1.5"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t('admin.report')}</span>
+                <span className="hidden xl:inline">{t('admin.report')}</span>
               </button>
 
               {/* Button 2: Quick Demo Data Toggle */}
@@ -1501,11 +1508,11 @@ export function DashboardPage() {
                     clearAllComplaints();
                   }
                 }}
-                className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition shadow-sm"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-0 text-xs font-bold text-indigo-600 shadow-sm transition hover:bg-indigo-500/20 dark:text-indigo-400 xl:h-auto xl:w-auto xl:gap-1.5 xl:rounded-xl xl:px-3 xl:py-1.5"
                 title="Click to toggle sample complaints across all 4 departments for demo preview"
               >
                 <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
-                <span className="hidden sm:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
+                <span className="hidden xl:inline">{complaints.length === 0 ? '⚡ Load Demo Data' : 'Clear Data'}</span>
               </button>
 
               {/* Broadcast Emergency Department Alert Message Button */}
@@ -1515,15 +1522,16 @@ export function DashboardPage() {
                   setNewAlertDept(selectedDepartment || 'Public Works Department (PWD)');
                   setIsAlertModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 px-3.5 py-1.5 text-xs font-black text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 transition shadow-sm"
+                aria-label="Broadcast department alert"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-orange-500/40 bg-orange-500/10 p-0 text-xs font-black text-orange-600 shadow-sm transition hover:bg-orange-500/20 dark:text-orange-400 xl:h-auto xl:w-auto xl:gap-1.5 xl:rounded-xl xl:px-3.5 xl:py-1.5"
                 title="Publish real-time alert message visible to all citizens under header marquee"
               >
                 <Bell className="h-3.5 w-3.5 text-orange-500" />
-                <span>+ Broadcast Alert</span>
+                <span className="hidden xl:inline">+ Broadcast Alert</span>
               </button>
 
               {/* Button 3: View Role Switcher */}
-              <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 text-xs font-bold">
+              <div className="hidden xl:flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard/citizen')}
@@ -1551,17 +1559,18 @@ export function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+                  aria-label="Open department notifications"
+                  className="flex h-9 w-9 items-center justify-center justify-self-center gap-1.5 rounded-lg border border-slate-200 bg-slate-100 p-0 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 xl:h-auto xl:w-auto xl:rounded-xl xl:px-3 xl:py-1.5"
                 >
                   <BellRing className="h-4 w-4 text-amber-500" />
-                  <span className="hidden sm:inline">Notifications</span>
+                  <span className="hidden xl:inline">Notifications</span>
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white">
                     {activeDeptComplaints.length}
                   </span>
                 </button>
 
                 {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xl z-50 animate-in fade-in duration-150">
+                  <div className="fixed inset-x-3 bottom-4 z-[60] max-h-[60dvh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-in fade-in duration-150 dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[min(70vh,32rem)] sm:w-80">
                     <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">Department Alerts</span>
                       <span className="text-[10px] text-slate-400">Queue</span>
@@ -1582,7 +1591,7 @@ export function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDarkMode(!darkMode)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-slate-200 bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
                 title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {darkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-700" />}
@@ -1595,7 +1604,7 @@ export function DashboardPage() {
                   logout();
                   navigate('/');
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 transition"
+                className="flex h-9 w-9 items-center justify-center justify-self-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
                 title="Sign Out"
               >
                 <LogOut className="h-4 w-4" />
