@@ -602,7 +602,7 @@ export function ComplaintFormPage() {
       {/* Main Container */}
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 dark:border-slate-800 dark:bg-slate-900">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
             <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
               <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">Citizen services</p>
@@ -626,7 +626,7 @@ export function ComplaintFormPage() {
                   <p className="text-[10px] text-indigo-700/80 dark:text-indigo-300/80">Active public officials</p>
                 </div>
               </div>
-              <div className="mt-2 max-h-52 space-y-1.5 overflow-y-auto pr-1">
+              <div className="mt-2 max-h-40 space-y-1.5 overflow-y-auto pr-1">
                 {HASSAN_REPRESENTATIVES.map((representative) => (
                   <div key={representative.name} className="flex items-center gap-2 rounded-lg bg-white/80 px-2 py-1.5 dark:bg-slate-900/70">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-black text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
