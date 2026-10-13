@@ -117,11 +117,19 @@ export async function addComplaintRecord(complaintData: Partial<ComplaintRecord>
   const updated = [newRecord, ...all];
   saveComplaints(updated);
 
-  // Background sync with server
+  // Persist the server-created record so every device uses the same complaint ID.
   try {
-    await api.post('/complaints', newRecord);
-  } catch {
-    // offline or backend fallback
+    const response = await api.post('/complaints', newRecord);
+    const savedComplaint = response.data?.complaint as ComplaintRecord | undefined;
+    if (savedComplaint?.complaintId) {
+      const withoutLocalRecord = getStoredComplaints().filter(
+        (complaint) => complaint.complaintId !== newRecord.complaintId
+      );
+      saveComplaints([savedComplaint, ...withoutLocalRecord]);
+      return savedComplaint;
+    }
+  } catch (error) {
+    console.error('Could not persist complaint to the shared server:', error);
   }
 
   return newRecord;
@@ -389,19 +397,24 @@ export function useComplaints() {
     api
       .get('/complaints')
       .then((res) => {
-        if (res.data?.complaints && Array.isArray(res.data.complaints)) {
-          const serverComplaints: ComplaintRecord[] = res.data.complaints.filter(
+        const serverItems = res.data?.items ?? res.data?.complaints;
+        if (Array.isArray(serverItems)) {
+          const serverComplaints: ComplaintRecord[] = serverItems.filter(
             (c: ComplaintRecord) => !isLegacyMockComplaint(c)
           );
-          const current = getStoredComplaints();
           const mergedMap = new Map<string, ComplaintRecord>();
           serverComplaints.forEach((c) => mergedMap.set(c.complaintId, c));
-          current.forEach((c) => mergedMap.set(c.complaintId, c));
+          // Keep only local records that have not reached the server yet.
+          getStoredComplaints()
+            .filter((c) => !mergedMap.has(c.complaintId))
+            .forEach((c) => mergedMap.set(c.complaintId, c));
           const merged = Array.from(mergedMap.values()).filter((c) => !isLegacyMockComplaint(c));
           saveComplaints(merged);
         }
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.error('Could not load complaints from the shared server:', error);
+      });
 
     return () => {
       window.removeEventListener(EVENT_KEY, handleSync);

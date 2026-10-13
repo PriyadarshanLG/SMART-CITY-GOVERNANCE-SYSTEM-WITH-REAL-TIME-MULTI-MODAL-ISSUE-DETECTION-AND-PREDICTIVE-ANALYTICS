@@ -14,7 +14,9 @@ export function loadGoogleMaps(): Promise<void> {
 
   if (!apiKey) {
     return Promise.reject(
-      new Error('Google Maps is not configured. Add VITE_GOOGLE_MAPS_API_KEY to client/.env and restart the client.')
+      new Error(
+        'Google Maps is not configured. Set VITE_GOOGLE_MAPS_API_KEY in the frontend deployment environment and redeploy the client.'
+      )
     );
   }
 

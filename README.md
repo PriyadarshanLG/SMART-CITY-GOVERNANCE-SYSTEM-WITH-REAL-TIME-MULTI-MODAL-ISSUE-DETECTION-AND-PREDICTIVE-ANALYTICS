@@ -152,6 +152,18 @@ cp client/.env.example client/.env
   ```
   The browser key must have the **Maps JavaScript API** enabled. Restrict it to your application’s HTTP referrers (including `http://localhost:5173/*` and `http://127.0.0.1:5173/*` for local development). Location is read from browser GPS; the report page reverse-geocodes GPS/map coordinates to an area and street address using OpenStreetMap Nominatim. The report form shows the required OpenStreetMap attribution. Do not commit the populated `.env` file.
 
+#### Production deployment (Vercel)
+
+`VITE_GOOGLE_MAPS_API_KEY` is a Vite build-time variable, so it must be configured in the frontend hosting project before the frontend is built. In Vercel, open the project **Settings → Environment Variables**, add `VITE_GOOGLE_MAPS_API_KEY` with the browser-restricted Google Maps key, enable it for the relevant environments, and redeploy. A key added after a deployment will not be available until a new deployment completes.
+
+The key must have **Maps JavaScript API** enabled and its HTTP referrer restrictions must include the deployed frontend origin, for example:
+
+```text
+https://your-project.vercel.app/*
+```
+
+Never put the Google Maps browser key in server-only environment variables; it is intentionally exposed to the browser by the `VITE_` prefix. Do not commit it to the repository.
+
 ---
 
 ### Step 3: Install Node.js Dependencies (Frontend & Backend)
