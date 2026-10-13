@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+const apiBaseUrl = import.meta.env.VITE_API_URL
+  || (import.meta.env.DEV
+    ? 'http://localhost:5000/api'
+    : 'https://smart-city-governance-system-with-real.onrender.com/api');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api',
+  baseURL: apiBaseUrl,
 });
 
 // Attach Authorization Bearer token from localStorage
