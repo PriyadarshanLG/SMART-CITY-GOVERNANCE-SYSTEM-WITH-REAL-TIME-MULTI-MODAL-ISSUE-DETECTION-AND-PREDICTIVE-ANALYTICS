@@ -41,6 +41,7 @@ import {
   Trash2,
   Upload,
   User,
+  UserCheck,
   Video,
   VideoOff,
   Search,
@@ -94,6 +95,20 @@ export const CROP_OPTIONS = [
   'Sugarcane 🎋',
   'Vegetables & Horticulture 🥦',
   'Fruit Orchards (Mango/Banana) 🥭',
+];
+
+const HASSAN_REPRESENTATIVES = [
+  { name: 'Shreyas M. Patel', role: 'Current MP · Hassan Lok Sabha', detail: 'Indian National Congress (INC)' },
+  { name: 'C. N. Balakrishna', role: 'MLA · Shravanabelagola', detail: 'Janata Dal (Secular)' },
+  { name: 'K. M. Shivalingegowda', role: 'MLA · Arasikere', detail: 'Indian National Congress (INC)' },
+  { name: 'H. K. Suresh', role: 'MLA · Belur', detail: 'Bharatiya Janata Party (BJP)' },
+  { name: 'H. S. Swaroop Prakash', role: 'MLA · Hassan', detail: 'Janata Dal (Secular)' },
+  { name: 'H. D. Revanna', role: 'MLA · Holenarsipura', detail: 'Janata Dal (Secular)' },
+  { name: 'A. Manju', role: 'MLA · Arkalgud', detail: 'Janata Dal (Secular)' },
+  { name: 'Cement Manju', role: 'MLA · Sakleshpur', detail: 'Bharatiya Janata Party (BJP)' },
+  { name: 'Smt K. S. Lathakumari, I.A.S', role: 'Deputy Commissioner & District Magistrate', detail: 'District Administration · Hassan' },
+  { name: 'Shubham Shukla, I.A.S', role: 'Chief Executive Officer', detail: 'Zilla Panchayat · Hassan' },
+  { name: 'Shubhanwita, I.P.S', role: 'Superintendent of Police', detail: 'Hassan District Police' },
 ];
 
 export function ComplaintFormPage() {
@@ -587,18 +602,45 @@ export function ComplaintFormPage() {
       {/* Main Container */}
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-            <div className="max-w-2xl">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+            <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+              <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">Citizen services</p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl dark:text-white">Report a civic issue</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 Describe the problem, add a photo if you have one, and pin its location. We’ll route it to the right team.
               </p>
+              </div>
+              <a href="tel:18004252026" className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-300">
+                <PhoneCall className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                Need help? 1800-425-2026
+              </a>
             </div>
-            <a href="tel:18004252026" className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-300">
-              <PhoneCall className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              Need help? 1800-425-2026
-            </a>
+            <aside className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-3 dark:border-indigo-900/50 dark:bg-indigo-950/20">
+              <div className="flex items-center gap-2 border-b border-indigo-200/70 pb-2 dark:border-indigo-900/60">
+                <UserCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <div>
+                  <h3 className="text-xs font-extrabold uppercase tracking-wide text-indigo-900 dark:text-indigo-200">
+                    Hassan Representatives
+                  </h3>
+                  <p className="text-[10px] text-indigo-700/80 dark:text-indigo-300/80">Active public officials</p>
+                </div>
+              </div>
+              <div className="mt-2 max-h-52 space-y-1.5 overflow-y-auto pr-1">
+                {HASSAN_REPRESENTATIVES.map((representative) => (
+                  <div key={representative.name} className="flex items-center gap-2 rounded-lg bg-white/80 px-2 py-1.5 dark:bg-slate-900/70">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-black text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      {representative.name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('')}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[10px] font-extrabold text-slate-900 dark:text-white">{representative.name}</p>
+                      <p className="truncate text-[9px] font-semibold text-slate-600 dark:text-slate-300">{representative.role}</p>
+                      <p className="truncate text-[9px] text-slate-500 dark:text-slate-400">{representative.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </aside>
           </div>
           <ol className="mt-6 grid grid-cols-3 gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
             {[
