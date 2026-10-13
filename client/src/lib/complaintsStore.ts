@@ -24,7 +24,6 @@ function isLegacyMockComplaint(item: ComplaintRecord): boolean {
     'SC-2026-000702',
     'SC-2026-000601',
     'SC-2026-000602',
-    'SC-2026-000001',
   ];
   return mockIds.includes(id);
 }
