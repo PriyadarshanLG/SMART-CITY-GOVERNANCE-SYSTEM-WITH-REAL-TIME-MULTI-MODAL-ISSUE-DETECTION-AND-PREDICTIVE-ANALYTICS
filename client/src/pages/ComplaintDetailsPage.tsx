@@ -145,6 +145,20 @@ const DEPARTMENT_DIRECTORY: Record<
   },
 };
 
+const HASSAN_REPRESENTATIVES = [
+  { name: 'Shreyas M. Patel', role: 'Current MP · Hassan Lok Sabha', detail: 'Indian National Congress (INC)' },
+  { name: 'C. N. Balakrishna', role: 'MLA · Shravanabelagola', detail: 'Janata Dal (Secular)' },
+  { name: 'K. M. Shivalingegowda', role: 'MLA · Arasikere', detail: 'Indian National Congress (INC)' },
+  { name: 'H. K. Suresh', role: 'MLA · Belur', detail: 'Bharatiya Janata Party (BJP)' },
+  { name: 'H. S. Swaroop Prakash', role: 'MLA · Hassan', detail: 'Janata Dal (Secular)' },
+  { name: 'H. D. Revanna', role: 'MLA · Holenarsipura', detail: 'Janata Dal (Secular)' },
+  { name: 'A. Manju', role: 'MLA · Arkalgud', detail: 'Janata Dal (Secular)' },
+  { name: 'Cement Manju', role: 'MLA · Sakleshpur', detail: 'Bharatiya Janata Party (BJP)' },
+  { name: 'Smt K. S. Lathakumari, I.A.S', role: 'Deputy Commissioner & District Magistrate', detail: 'District Administration · Hassan' },
+  { name: 'Shubham Shukla, I.A.S', role: 'Chief Executive Officer', detail: 'Zilla Panchayat · Hassan' },
+  { name: 'Shubhanwita, I.P.S', role: 'Superintendent of Police', detail: 'Hassan District Police' },
+];
+
 export function ComplaintDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -790,7 +804,51 @@ export function ComplaintDetailsPage() {
           {/* RIGHT BOX: RAISE ISSUE TO HIGHER AUTHORITY (Per Sketch & Voice Note)  */}
           {/* Triggers if unresolved > 5 days or urgent public safety risk         */}
           {/* --------------------------------------------------------------------- */}
-          <div className="lg:col-span-5 rounded-3xl border-2 border-red-200 dark:border-red-950/60 bg-red-50/40 dark:bg-red-950/20 p-6 sm:p-7 shadow-sm flex flex-col justify-between space-y-5">
+          <div className="lg:col-span-5 space-y-5">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+              <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs uppercase tracking-wider">
+                  <UserCheck className="h-4 w-4" />
+                  <span>Hassan District Representatives</span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  Current public representatives and district officials
+                </p>
+              </div>
+              <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+                {HASSAN_REPRESENTATIVES.map((representative) => (
+                  <div
+                    key={representative.name}
+                    className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50 px-2.5 py-2 dark:border-slate-800 dark:bg-slate-950/60"
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-black text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300">
+                      {representative.name
+                        .split(/[\s.]+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((part) => part[0])
+                        .join('')}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-extrabold text-slate-900 dark:text-white">
+                        {representative.name}
+                      </p>
+                      <p className="truncate text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                        {representative.role}
+                      </p>
+                      <p className="truncate text-[10px] text-slate-500 dark:text-slate-400">
+                        {representative.detail}
+                      </p>
+                    </div>
+                    <span className="ml-auto shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      Active
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border-2 border-red-200 dark:border-red-950/60 bg-red-50/40 dark:bg-red-950/20 p-6 sm:p-7 shadow-sm flex flex-col justify-between space-y-5">
             
             <div className="border-b border-red-200 dark:border-red-900/40 pb-3">
               <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-extrabold text-sm uppercase tracking-wider">
@@ -840,6 +898,7 @@ export function ComplaintDetailsPage() {
               )}
             </div>
           </div>
+        </div>
         </div>
 
         {/* ========================================================================= */}
