@@ -603,7 +603,7 @@ export function ComplaintFormPage() {
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-7 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 dark:border-slate-800 dark:bg-slate-900">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
-            <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
               <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">Citizen services</p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl dark:text-white">Report a civic issue</h2>
