@@ -36,6 +36,11 @@ export async function getCurrentPositionAsync(): Promise<CurrentPosition> {
     throw new Error('Location access is not available in this browser.');
   }
 
+  const getErrorCode = (error: unknown) =>
+    typeof error === 'object' && error !== null && 'code' in error
+      ? (error as { code?: number }).code
+      : undefined;
+
   const locate = (options: PositionOptions) =>
     new Promise<CurrentPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
@@ -51,21 +56,23 @@ export async function getCurrentPositionAsync(): Promise<CurrentPosition> {
     });
 
   try {
-    return await locate({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
-  } catch {
-    try {
-      return await locate({ enableHighAccuracy: false, timeout: 12000, maximumAge: 0 });
-    } catch (error) {
-      if (typeof error === 'object' && error !== null && 'code' in error) {
-        if (error.code === 1) {
-          throw new Error('Location permission was denied. Allow location access in your browser settings and try again.');
+      // A recent network-assisted fix is faster and more reliable on desktops.
+      return await locate({ enableHighAccuracy: false, timeout: 20000, maximumAge: 30000 });
+    } catch (firstError) {
+      try {
+        return await locate({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+      } catch (error) {
+        const code = getErrorCode(error) ?? getErrorCode(firstError);
+        if (code === 1) {
+          throw new Error('Location permission was denied. Click the lock icon beside the website address, allow Location, then try again.');
         }
-        if (error.code === 2) {
-          throw new Error('Your device could not determine its current location.');
+        if (code === 2) {
+          throw new Error('Your device could not determine its current location. Turn on device Location services and try again.');
         }
-        throw new Error('Getting your current location timed out. Please try again.');
+        if (code === 3) {
+          throw new Error('Getting your current location timed out. Move near a window or enable device Location services, then try again.');
+        }
+        throw new Error('Could not get your current location.');
       }
-      throw new Error('Could not get your current location.');
-    }
   }
 }
