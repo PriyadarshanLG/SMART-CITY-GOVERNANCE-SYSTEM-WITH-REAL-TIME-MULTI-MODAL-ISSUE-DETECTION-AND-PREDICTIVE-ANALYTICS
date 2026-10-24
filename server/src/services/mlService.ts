@@ -1,47 +1,97 @@
-import axios from 'axios';
-import { env } from '../config/env.js';
+export type ComplaintPriority = 'High' | 'Medium' | 'Low';
 
 export interface ComplaintClassificationInput {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
 }
 
-const keywordMap: Array<[string, { category: string; department: string; priority: 'High' | 'Medium' | 'Low' }]> = [
-  ['road', { category: 'Road Damage', department: 'Public Works Department', priority: 'Medium' }],
-  ['garbage', { category: 'Garbage', department: 'Sanitation Department', priority: 'Medium' }],
-  ['water leakage', { category: 'Water Leakage', department: 'Water Supply Department', priority: 'High' }],
-  ['drainage', { category: 'Drainage', department: 'Drainage Department', priority: 'High' }],
-  ['street light', { category: 'Street Light', department: 'Electricity Department', priority: 'Low' }],
-  ['electricity', { category: 'Electricity', department: 'Electricity Department', priority: 'High' }],
-  ['traffic signal', { category: 'Traffic Signal', department: 'Traffic Police', priority: 'High' }],
-  ['sewage', { category: 'Sewage', department: 'Drainage Department', priority: 'High' }],
-  ['park', { category: 'Park Maintenance', department: 'Parks Department', priority: 'Low' }],
-  ['animal', { category: 'Animal Control', department: 'Veterinary Department', priority: 'Medium' }],
+export interface ComplaintClassification {
+  category: string;
+  department: string;
+  priority: ComplaintPriority;
+  departmentReason: string;
+  priorityReason: string;
+  matchedKeywords: string[];
+  method: 'rule-based';
+}
+
+interface DepartmentRule {
+  department: string;
+  category: string;
+  keywords: string[];
+  reason: string;
+}
+
+export const departmentRules: DepartmentRule[] = [
+  {
+    department: 'Sanitation Department',
+    category: 'Garbage',
+    keywords: ['garbage', 'waste', 'rubbish', 'litter', 'dump', 'overflowing bin', 'swachh'],
+    reason: 'the complaint mentions garbage or waste',
+  },
+  {
+    department: 'Roads and Infrastructure',
+    category: 'Road Damage',
+    keywords: ['pothole', 'road', 'pavement', 'bridge', 'footpath', 'sidewalk', 'street damage'],
+    reason: 'the complaint mentions a road or infrastructure problem',
+  },
+  {
+    department: 'Water Supply Department',
+    category: 'Water Supply',
+    keywords: ['water', 'pipeline', 'pipe burst', 'leakage', 'no supply', 'tap', 'sewage', 'drainage'],
+    reason: 'the complaint mentions water, pipeline, sewage, or drainage',
+  },
+  {
+    department: 'Electricity Department',
+    category: 'Electricity',
+    keywords: ['electricity', 'power cut', 'power outage', 'street light', 'streetlight', 'transformer', 'wire'],
+    reason: 'the complaint mentions electricity or lighting',
+  },
+  {
+    department: 'Public Safety Department',
+    category: 'Public Safety',
+    keywords: ['traffic signal', 'accident', 'unsafe', 'danger', 'fire', 'crime', 'stray dog', 'emergency'],
+    reason: 'the complaint mentions a safety risk or emergency',
+  },
 ];
 
-export async function classifyComplaint(input: ComplaintClassificationInput) {
-  try {
-    const response = await axios.post(`${env.ML_API_URL}/predict`, input, {
-      timeout: 10000,
-    });
+export const highPriorityKeywords = ['emergency', 'danger', 'accident', 'fire', 'flood', 'injury', 'injured', 'life threatening', 'collapsed', 'sparking'];
+export const mediumPriorityKeywords = ['overflowing', 'blocked', 'broken', 'leak', 'leakage', 'outage', 'pothole', 'open manhole', 'unsafe'];
 
-    return response.data as {
-      category: string;
-      department: string;
-      priority: 'High' | 'Medium' | 'Low';
-    };
-  } catch {
-    const text = `${input.title} ${input.description}`.toLowerCase();
-    const matched = keywordMap.find(([keyword]) => text.includes(keyword));
+function findMatches(text: string, keywords: string[]): string[] {
+  return keywords.filter((keyword) => text.includes(keyword));
+}
 
-    if (matched) {
-      return matched[1];
-    }
+export function classifyComplaint(input: ComplaintClassificationInput): ComplaintClassification {
+  const text = `${input.title || ''} ${input.description || ''}`.trim().toLowerCase();
+  const rankedRules = departmentRules
+    .map((rule, index) => ({ rule, index, matches: findMatches(text, rule.keywords) }))
+    .filter(({ matches }) => matches.length > 0)
+    .sort((a, b) => b.matches.length - a.matches.length || a.index - b.index);
+  const selected = rankedRules[0];
+  const matchedKeywords = selected?.matches || [];
 
-    return {
-      category: 'Public Property Damage',
-      department: 'Municipal Engineering',
-      priority: 'Medium',
-    };
-  }
+  const highMatches = findMatches(text, highPriorityKeywords);
+  const mediumMatches = findMatches(text, mediumPriorityKeywords);
+  const priority: ComplaintPriority = highMatches.length > 0
+    ? 'High'
+    : mediumMatches.length > 0
+      ? 'Medium'
+      : 'Low';
+
+  return {
+    category: selected?.rule.category || 'General Civic Issue',
+    department: selected?.rule.department || 'Municipal Corporation',
+    priority,
+    departmentReason: selected
+      ? `Suggested ${selected.rule.department} because ${selected.rule.reason}.`
+      : 'No department-specific keyword was found, so the complaint is routed to Municipal Corporation for review.',
+    priorityReason: highMatches.length > 0
+      ? `Suggested High priority because it mentions ${highMatches.join(', ')}.`
+      : mediumMatches.length > 0
+        ? `Suggested Medium priority because it mentions ${mediumMatches.join(', ')}.`
+        : 'Suggested Low priority because no urgent or elevated-severity indicator was found.',
+    matchedKeywords,
+    method: 'rule-based',
+  };
 }

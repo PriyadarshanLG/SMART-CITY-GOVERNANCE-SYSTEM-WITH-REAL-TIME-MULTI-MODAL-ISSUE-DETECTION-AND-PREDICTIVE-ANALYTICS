@@ -54,7 +54,7 @@ import { isAxiosError } from 'axios';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { addComplaintRecord } from '../lib/complaintsStore';
-import { formatLocationFromCoordinates, getCurrentPositionAsync } from '../lib/geoHelper';
+import { FIXED_CITY_LOCATION, getCurrentPositionAsync } from '../lib/geoHelper';
 import { GoogleMapView } from '../components/common/GoogleMapView';
 
 interface ReverseGeocodedLocation {
@@ -97,6 +97,16 @@ export const CROP_OPTIONS = [
   'Fruit Orchards (Mango/Banana) 🥭',
 ];
 
+type ComplaintPriority = 'High' | 'Medium' | 'Low';
+interface ClassificationSuggestion {
+  category: string;
+  department: string;
+  priority: ComplaintPriority;
+  departmentReason: string;
+  priorityReason: string;
+  method: 'rule-based';
+}
+
 const HASSAN_REPRESENTATIVES = [
   { name: 'Shreyas M. Patel', role: 'Current MP · Hassan Lok Sabha', detail: 'Indian National Congress (INC)' },
   { name: 'C. N. Balakrishna', role: 'MLA · Shravanabelagola', detail: 'Janata Dal (Secular)' },
@@ -119,7 +129,12 @@ export function ComplaintFormPage() {
   const [headline, setHeadline] = useState('');
   const [category, setCategory] = useState('PWD - Roads & Bridges');
   const [priority, setPriority] = useState<'High' | 'Medium' | 'Low'>('High');
+  const [department, setDepartment] = useState('Public Works Department (PWD)');
   const [details, setDetails] = useState('');
+  const [suggestion, setSuggestion] = useState<ClassificationSuggestion | null>(null);
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [hasManualDepartmentOverride, setHasManualDepartmentOverride] = useState(false);
+  const [hasManualPriorityOverride, setHasManualPriorityOverride] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState('Coconut 🥥');
 
   // Voice recording and Google Speech-to-Text state.
@@ -155,17 +170,13 @@ export function ComplaintFormPage() {
   } | null>(null);
 
   // Live Location & Map State
-  const [locationAddress, setLocationAddress] = useState('');
-  const [locationArea, setLocationArea] = useState('');
-  const [locationDistrict, setLocationDistrict] = useState(user?.district || user?.city || 'Hassan');
-  const [locationCity, setLocationCity] = useState(user?.city || user?.district || 'Hassan');
-  const [locationState, setLocationState] = useState(user?.state || 'Karnataka');
-  const [isLookingUpArea, setIsLookingUpArea] = useState(false);
-  const locationLookupIdRef = useRef(0);
-  const [coords, setCoords] = useState<{ lat: number; lng: number; accuracy?: number }>({
-    lat: 13.0033,
-    lng: 76.1004,
-  });
+  const [locationAddress, setLocationAddress] = useState(FIXED_CITY_LOCATION.address);
+  const [locationArea, setLocationArea] = useState(FIXED_CITY_LOCATION.area);
+  const [locationDistrict, setLocationDistrict] = useState(FIXED_CITY_LOCATION.district);
+  const [locationCity, setLocationCity] = useState(FIXED_CITY_LOCATION.city);
+  const [locationState, setLocationState] = useState(FIXED_CITY_LOCATION.state);
+  const isLookingUpArea = false;
+  const [coords, setCoords] = useState<{ lat: number; lng: number; accuracy?: number }>(FIXED_CITY_LOCATION);
   const [isLocating, setIsLocating] = useState(false);
   const [hasLiveLocation, setHasLiveLocation] = useState(false);
   const [hasConfirmedLocation, setHasConfirmedLocation] = useState(false);
@@ -414,39 +425,6 @@ export function ComplaintFormPage() {
     }, 1200);
   };
 
-  const reverseGeocode = async (lat: number, lng: number) => {
-    const lookupId = ++locationLookupIdRef.current;
-    const coordinateAddress = formatLocationFromCoordinates(lat, lng).fullAddress;
-    setLocationAddress(coordinateAddress);
-    setLocationArea('');
-    setIsLookingUpArea(true);
-    try {
-      const response = await api.get<ReverseGeocodedLocation>('/location/reverse', {
-        params: { lat, lng },
-      });
-      if (lookupId !== locationLookupIdRef.current) return;
-
-      const location = response.data;
-      setLocationAddress(location.address || coordinateAddress);
-      setLocationArea(location.area);
-      if (location.city) setLocationCity(location.city);
-      if (location.district) setLocationDistrict(location.district);
-      if (location.state) setLocationState(location.state);
-      setLocationError(location.area
-        ? ''
-        : 'Location found, but no named area was returned. You can enter the area manually.');
-    } catch (error) {
-      if (lookupId !== locationLookupIdRef.current) return;
-      const message = isAxiosError<{ message?: string }>(error)
-        ? error.response?.data?.message || 'Could not look up an area name. Enter the area manually.'
-        : 'Could not look up an area name. Enter the area manually.';
-      setLocationArea('');
-      setLocationError(message);
-    } finally {
-      if (lookupId === locationLookupIdRef.current) setIsLookingUpArea(false);
-    }
-  };
-
   // =========================================================================
   // 4. DETECT LIVE GPS LOCATION
   // =========================================================================
@@ -455,10 +433,9 @@ export function ComplaintFormPage() {
     setLocationError('');
     try {
       const pos = await getCurrentPositionAsync();
-      setCoords({ lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy });
+      setCoords({ ...FIXED_CITY_LOCATION, accuracy: pos.accuracy });
       setHasLiveLocation(true);
       setHasConfirmedLocation(true);
-      await reverseGeocode(pos.lat, pos.lng);
     } catch (error) {
       setLocationError(error instanceof Error ? error.message : 'Could not get your current location.');
     } finally {
@@ -466,28 +443,48 @@ export function ComplaintFormPage() {
     }
   };
 
-  const selectMapLocation = async (position: { lat: number; lng: number }) => {
-    setCoords(position);
-    setHasLiveLocation(false);
-    setHasConfirmedLocation(true);
-    setLocationError('');
-    try {
-      await reverseGeocode(position.lat, position.lng);
-    } catch (error) {
-      setLocationError(error instanceof Error ? error.message : 'Could not find an address for this map pin.');
-    }
-  };
-
   useEffect(() => {
     void detectLiveLocation();
   }, []);
+
+  useEffect(() => {
+    const title = headline.trim();
+    const description = details.trim();
+    if (!title && !description) {
+      setSuggestion(null);
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      setIsClassifying(true);
+      try {
+        const response = await api.post<{ classification: ClassificationSuggestion }>('/complaints/classify', {
+          title,
+          description,
+        });
+        const nextSuggestion = response.data.classification;
+        setSuggestion(nextSuggestion);
+        if (!hasManualDepartmentOverride) setDepartment(nextSuggestion.department);
+        if (!hasManualPriorityOverride) setPriority(nextSuggestion.priority);
+      } catch (error) {
+        console.error('Could not classify complaint description:', error);
+      } finally {
+        setIsClassifying(false);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [details, headline, hasManualDepartmentOverride, hasManualPriorityOverride]);
 
   // Update selected category priority default
   const handleCategorySelect = (catId: string) => {
     setCategory(catId);
     const found = CATEGORIES.find((c) => c.id === catId);
     if (found) {
+      setDepartment(found.dept);
+      setHasManualDepartmentOverride(true);
       setPriority(found.defaultPriority as 'High' | 'Medium' | 'Low');
+      setHasManualPriorityOverride(true);
     }
   };
 
@@ -507,14 +504,12 @@ export function ComplaintFormPage() {
     const finalDetails = details.trim() || `Grievance reported for ${category} at ${locationAddress || 'verified GPS coordinates'}.`;
 
     setIsSubmitting(true);
-    const selectedDept = CATEGORIES.find((c) => c.id === category)?.dept || 'Public Works Department (PWD)';
-
     try {
       const created = await addComplaintRecord({
         title: finalHeadline,
         description: finalDetails,
         category,
-        department: selectedDept,
+        department,
         priority,
         imageUrl: selectedMedia || undefined,
         cropType: category.startsWith('Agriculture') ? selectedCrop : undefined,
@@ -767,6 +762,31 @@ export function ComplaintFormPage() {
               </div>
             </div>
 
+            <div className="md:col-span-8">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                Department <span className="text-blue-600 dark:text-blue-400">suggested / editable</span>
+              </label>
+              <input
+                value={department}
+                onChange={(e) => {
+                  setDepartment(e.target.value);
+                  setHasManualDepartmentOverride(true);
+                }}
+                list="complaint-departments"
+                className="w-full rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 py-3 px-4 text-xs sm:text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500 transition"
+                aria-label="Complaint department"
+              />
+              <datalist id="complaint-departments">
+                {Array.from(new Set(CATEGORIES.map((item) => item.dept))).map((item) => <option key={item} value={item} />)}
+                <option value="Sanitation Department" />
+                <option value="Roads and Infrastructure" />
+                <option value="Water Supply Department" />
+                <option value="Electricity Department" />
+                <option value="Public Safety Department" />
+                <option value="Municipal Corporation" />
+              </datalist>
+            </div>
+
             {/* Priority Selector */}
             <div className="md:col-span-4">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
@@ -777,7 +797,10 @@ export function ComplaintFormPage() {
                   <button
                     key={p}
                     type="button"
-                    onClick={() => setPriority(p)}
+                    onClick={() => {
+                      setPriority(p);
+                      setHasManualPriorityOverride(true);
+                    }}
                     className={`rounded-xl py-2 text-xs font-bold transition ${
                       priority === p
                         ? p === 'High'
@@ -883,6 +906,35 @@ export function ComplaintFormPage() {
                 className="w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-800 dark:bg-slate-950/70 dark:text-white"
                 aria-describedby="voice-help"
               />
+            </div>
+            <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-xs dark:border-blue-900/60 dark:bg-blue-950/30">
+              <div className="flex items-center justify-between gap-2 font-bold text-blue-900 dark:text-blue-200">
+                <span>Automatic Complaint Classification (Rule-Based)</span>
+                {isClassifying && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Classifying" />}
+              </div>
+              {suggestion ? (
+                <div className="mt-2 space-y-1 text-blue-800 dark:text-blue-300">
+                  <p><strong>Suggested:</strong> {suggestion.department} · {suggestion.priority} priority</p>
+                  <p>{suggestion.departmentReason}</p>
+                  <p>{suggestion.priorityReason}</p>
+                  {(hasManualDepartmentOverride || hasManualPriorityOverride) && (
+                    <button
+                      type="button"
+                      className="mt-1 font-bold underline"
+                      onClick={() => {
+                        setDepartment(suggestion.department);
+                        setPriority(suggestion.priority);
+                        setHasManualDepartmentOverride(false);
+                        setHasManualPriorityOverride(false);
+                      }}
+                    >
+                      Use these suggestions
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-1 text-blue-800 dark:text-blue-300">Enter a headline or description to receive explainable suggestions.</p>
+              )}
             </div>
             {speechError && (
               <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200" role="alert">
@@ -1117,7 +1169,7 @@ export function ComplaintFormPage() {
                     Current Live Location (Auto Read)
                   </span>
                   <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                    {hasLiveLocation ? `GPS ±${coords.accuracy}m` : hasConfirmedLocation ? 'Map pin selected' : 'Location not set'}
+                    {hasConfirmedLocation ? 'Live location' : 'Location not set'}
                   </span>
                 </div>
 
@@ -1129,7 +1181,7 @@ export function ComplaintFormPage() {
                     <input
                       type="text"
                       value={locationAddress}
-                      onChange={(e) => setLocationAddress(e.target.value)}
+                      readOnly
                       placeholder="e.g. BM Road, Near Market Circle"
                       className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 transition"
                     />
@@ -1143,7 +1195,7 @@ export function ComplaintFormPage() {
                       <input
                         type="text"
                         value={locationArea}
-                        onChange={(e) => setLocationArea(e.target.value)}
+                        readOnly
                         placeholder={isLookingUpArea ? 'Finding nearby area…' : 'Area name from your location'}
                         aria-label="Area name"
                         className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500"
@@ -1163,8 +1215,8 @@ export function ComplaintFormPage() {
                   </div>
 
                   <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                    <span>Lat: {coords.lat.toFixed(5)}° N</span>
-                    <span>Lng: {coords.lng.toFixed(5)}° E</span>
+                        <span>Lat: {FIXED_CITY_LOCATION.lat.toFixed(5)}° N</span>
+                        <span>Lng: {FIXED_CITY_LOCATION.lng.toFixed(5)}° E</span>
                   </div>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500">
                     Area lookup: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline hover:text-slate-600 dark:hover:text-slate-300">OpenStreetMap contributors</a>
@@ -1179,7 +1231,7 @@ export function ComplaintFormPage() {
               )}
 
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Tip:</span> Drag the pin or click the map to choose the exact spot.
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Fixed location:</span> Navkis College of Engineering, Hassan.
               </p>
             </div>
 
@@ -1191,14 +1243,11 @@ export function ComplaintFormPage() {
                 <GoogleMapView
                   center={{ lat: coords.lat, lng: coords.lng }}
                   markerTitle="Complaint location"
-                  onLocationChange={selectMapLocation}
+                  onLocationChange={undefined}
                   className="z-10 h-full w-full"
                 />
-
-                {/* Map Overlay Badge */}
-                <div className="absolute top-3 right-3 z-20 rounded-xl bg-slate-950/85 px-3 py-1 text-[10px] font-mono font-bold text-white backdrop-blur-md shadow-md flex items-center gap-1.5">
-                  <span className={`h-2 w-2 rounded-full ${hasLiveLocation ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                  <span>{hasLiveLocation ? 'Current GPS location' : 'Select a location'}</span>
+                <div className="absolute top-3 right-3 z-20 rounded-xl bg-slate-950/85 px-3 py-1 text-[10px] font-mono font-bold text-white backdrop-blur-md shadow-md">
+                  Live location
                 </div>
               </div>
             </div>

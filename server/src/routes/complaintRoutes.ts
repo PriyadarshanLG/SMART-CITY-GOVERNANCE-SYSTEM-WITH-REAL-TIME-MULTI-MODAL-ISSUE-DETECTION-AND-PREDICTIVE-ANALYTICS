@@ -1,10 +1,17 @@
 import { Router } from 'express';
 import mongoose, { isValidObjectId } from 'mongoose';
-import { classifyComplaint } from '../services/mlService.js';
+import { classifyComplaint, type ComplaintPriority } from '../services/mlService.js';
 import { generateComplaintId } from '../services/complaintService.js';
 import { ComplaintModel } from '../models/Complaint.js';
 
 export const complaintRouter = Router();
+
+// Rule-based preview used by the complaint form. It does not persist anything.
+complaintRouter.post('/classify', (req, res) => {
+  const title = typeof req.body.title === 'string' ? req.body.title : '';
+  const description = typeof req.body.description === 'string' ? req.body.description : '';
+  return res.json({ classification: classifyComplaint({ title, description }) });
+});
 
 // 1. Summary Statistics Aggregation for Dashboard & Homepage
 complaintRouter.get('/stats/summary', async (_req, res, next) => {
@@ -156,15 +163,14 @@ complaintRouter.get('/:id', async (req, res, next) => {
   }
 });
 
-// 4. Create New Complaint with NLP Classifier & MongoDB persistence
+// 4. Create New Complaint with rule-based validation and MongoDB persistence
 complaintRouter.post('/', async (req, res, next) => {
   try {
     const complaintId = await generateComplaintId();
     const title = req.body.title || 'Untitled Civic Grievance';
     const description = req.body.description || '';
 
-    // Run ML or fallback keyword classifier
-    const classification = await classifyComplaint({
+    const classification = classifyComplaint({
       title,
       description,
     });
@@ -173,11 +179,17 @@ complaintRouter.post('/', async (req, res, next) => {
       ? req.body.category
       : classification.category;
 
-    const department = req.body.department && req.body.department !== 'Awaiting description'
-      ? req.body.department
+    const submittedPriority = req.body.priority;
+    if (submittedPriority !== undefined && !['High', 'Medium', 'Low'].includes(submittedPriority)) {
+      return res.status(400).json({ message: 'Priority must be High, Medium, or Low.' });
+    }
+    const priority: ComplaintPriority = ['High', 'Medium', 'Low'].includes(submittedPriority)
+      ? submittedPriority
+      : classification.priority;
+    const submittedDepartment = typeof req.body.department === 'string' ? req.body.department.trim() : '';
+    const finalDepartment = submittedDepartment && submittedDepartment !== 'Awaiting description'
+      ? submittedDepartment
       : classification.department;
-
-    const priority = req.body.priority || classification.priority || 'Medium';
 
     const citizenId = isValidObjectId(req.body.citizenId) ? req.body.citizenId : undefined;
 
@@ -198,7 +210,7 @@ complaintRouter.post('/', async (req, res, next) => {
       },
       {
         status: 'Department Assigned',
-        note: `Dispatched to ${department} for Ward ${ward} with priority '${priority}'.`,
+        note: `Dispatched to ${finalDepartment} for Ward ${ward} with priority '${priority}'.`,
         createdAt: new Date(),
       },
     ];
@@ -224,7 +236,7 @@ complaintRouter.post('/', async (req, res, next) => {
         accuracy: acc ? Number(acc) : undefined,
       },
       category,
-      department,
+      department: finalDepartment,
       priority,
       status: 'Department Assigned',
       supportCount: 1,
@@ -234,7 +246,11 @@ complaintRouter.post('/', async (req, res, next) => {
     res.status(201).json({
       message: 'Complaint created successfully and saved in MongoDB',
       complaint,
-      classification,
+      classification: {
+        ...classification,
+        submittedDepartment: finalDepartment,
+        submittedPriority: priority,
+      },
     });
   } catch (error) {
     next(error);

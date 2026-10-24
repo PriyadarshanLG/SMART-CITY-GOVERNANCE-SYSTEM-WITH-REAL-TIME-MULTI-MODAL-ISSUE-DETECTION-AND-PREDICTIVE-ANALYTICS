@@ -38,6 +38,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { FIXED_CITY_LOCATION } from '../lib/geoHelper';
 
 type WorkflowStepKey = '01' | '02' | '03' | '04';
 type ModalStep = 'select' | 'citizen-login' | 'citizen-register' | 'department-login';
@@ -91,7 +92,13 @@ export function LoadingPage() {
     latitude: number;
     longitude: number;
     locality?: string;
-  } | null>(null);
+  }>({
+    city: FIXED_CITY_LOCATION.city,
+    region: FIXED_CITY_LOCATION.state,
+    latitude: FIXED_CITY_LOCATION.lat,
+    longitude: FIXED_CITY_LOCATION.lng,
+    locality: FIXED_CITY_LOCATION.area,
+  });
 
   // Theme state: dark / light
   const [darkMode, setDarkMode] = useState(() => {
@@ -140,59 +147,9 @@ export function LoadingPage() {
 
   // Live Location Detection
   useEffect(() => {
-    async function detectLiveLocation() {
-      try {
-        const ipRes = await fetch('https://ipwho.is/');
-        if (ipRes.ok) {
-          const ipData = await ipRes.json();
-          if (ipData.success && ipData.latitude && ipData.longitude) {
-            setLiveLocation({
-              city: ipData.city || 'Bengaluru',
-              region: ipData.region || 'Karnataka',
-              latitude: Number(ipData.latitude),
-              longitude: Number(ipData.longitude),
-            });
-            if (!regCity) setRegCity(ipData.city || 'Bengaluru');
-            if (!regState) setRegState(ipData.region || 'Karnataka');
-          }
-        }
-      } catch {
-        // Fallback
-      }
-
-      if (typeof navigator !== 'undefined' && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            try {
-              const res = await fetch(
-                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
-              );
-              if (res.ok) {
-                const data = await res.json();
-                setLiveLocation({
-                  city: data.city || data.locality || 'Bengaluru',
-                  region: data.principalSubdivision || 'Karnataka',
-                  latitude: lat,
-                  longitude: lon,
-                  locality: data.locality,
-                });
-                if (!regCity) setRegCity(data.city || data.locality || 'Bengaluru');
-                if (!regState) setRegState(data.principalSubdivision || 'Karnataka');
-                if (!regDistrict) setRegDistrict(data.locality || 'Central District');
-              }
-            } catch {
-              setLiveLocation((prev) => (prev ? { ...prev, latitude: lat, longitude: lon } : null));
-            }
-          },
-          () => {},
-          { timeout: 3500, maximumAge: 0 }
-        );
-      }
-    }
-
-    void detectLiveLocation();
+    setRegCity(FIXED_CITY_LOCATION.city);
+    setRegState(FIXED_CITY_LOCATION.state);
+    setRegDistrict(FIXED_CITY_LOCATION.district);
   }, []);
 
   // Telemetry cycle animation

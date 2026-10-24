@@ -1,6 +1,7 @@
 import { Navigation, MapPin, ExternalLink, Compass } from 'lucide-react';
 import { GoogleMapView } from './GoogleMapView';
 import type { ComplaintLocation } from '../../types/complaint';
+import { FIXED_CITY_LOCATION } from '../../lib/geoHelper';
 
 interface LocationMapCardProps {
   location?: ComplaintLocation;
@@ -15,8 +16,8 @@ export function LocationMapCard({
   className = '',
   showEmbedMap = true,
 }: LocationMapCardProps) {
-  const lat = location?.coordinates?.lat ?? location?.latitude ?? 13.0042;
-  const lng = location?.coordinates?.lng ?? location?.longitude ?? 76.1018;
+  const lat = location?.coordinates?.lat ?? location?.latitude ?? FIXED_CITY_LOCATION.lat;
+  const lng = location?.coordinates?.lng ?? location?.longitude ?? FIXED_CITY_LOCATION.lng;
 
   const areaStr = location?.area || 'BM Road Area';
   const wardStr = location?.ward || 'Ward 04';

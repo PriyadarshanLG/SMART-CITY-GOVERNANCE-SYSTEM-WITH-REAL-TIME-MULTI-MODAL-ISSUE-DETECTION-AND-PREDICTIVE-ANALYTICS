@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from './api';
 import type { ComplaintRecord } from '../types/complaint';
+import { FIXED_CITY_LOCATION } from './geoHelper';
 
 const STORAGE_KEY = 'smartcity_all_complaints';
 const EVENT_KEY = 'smartcity_complaints_synced';
@@ -88,8 +89,8 @@ export async function addComplaintRecord(complaintData: Partial<ComplaintRecord>
         area: 'Local Area',
         ward: 'Ward 01',
       };
-      const lat = rawLoc.coordinates?.lat ?? rawLoc.latitude ?? 13.0042;
-      const lng = rawLoc.coordinates?.lng ?? rawLoc.longitude ?? 76.1018;
+      const lat = rawLoc.coordinates?.lat ?? rawLoc.latitude ?? FIXED_CITY_LOCATION.lat;
+      const lng = rawLoc.coordinates?.lng ?? rawLoc.longitude ?? FIXED_CITY_LOCATION.lng;
       return {
         ...rawLoc,
         latitude: lat,
@@ -264,8 +265,8 @@ export function seedSampleComplaintsForDemo() {
         city: 'Hassan',
         district: 'Hassan',
         state: 'Karnataka',
-        latitude: 13.0042,
-        longitude: 76.1018,
+        latitude: FIXED_CITY_LOCATION.lat,
+        longitude: FIXED_CITY_LOCATION.lng,
       },
       createdAt: new Date(Date.now() - 3600 * 24 * 3 * 1000).toISOString(),
       timeline: [

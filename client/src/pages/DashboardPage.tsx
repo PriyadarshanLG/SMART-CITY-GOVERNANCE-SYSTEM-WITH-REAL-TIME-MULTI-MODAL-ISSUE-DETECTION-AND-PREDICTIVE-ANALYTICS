@@ -63,7 +63,7 @@ import { LanguageSwitcher } from '../components/common/LanguageSwitcher';
 import { LocationMapCard } from '../components/common/LocationMapCard';
 import { GoogleMapView } from '../components/common/GoogleMapView';
 import { useLanguage } from '../context/LanguageContext';
-import { formatLocationFromCoordinates, getCurrentPositionAsync } from '../lib/geoHelper';
+import { FIXED_CITY_LOCATION, formatLocationFromCoordinates, getCurrentPositionAsync } from '../lib/geoHelper';
 import { useDepartmentAlerts } from '../lib/alertsStore';
 
 export const ALL_DEPARTMENTS = [
@@ -176,8 +176,8 @@ export function DashboardPage() {
   const [trackingIdInput, setTrackingIdInput] = useState('');
 
   // Live GPS Map States for Citizen Dashboard
-  const [liveCoords, setLiveCoords] = useState<{ lat: number; lng: number }>({ lat: 13.0042, lng: 76.1018 });
-  const [liveAddress, setLiveAddress] = useState<string>('Central Ring Road, Hassan, Karnataka');
+  const [liveCoords, setLiveCoords] = useState<{ lat: number; lng: number }>(FIXED_CITY_LOCATION);
+  const [liveAddress, setLiveAddress] = useState<string>(FIXED_CITY_LOCATION.address);
   const [detectedCity, setDetectedCity] = useState<string>('');
   const [detectedDistrict, setDetectedDistrict] = useState<string>('');
   const [detectedState, setDetectedState] = useState<string>('');
@@ -1208,7 +1208,7 @@ export function DashboardPage() {
                             </div>
 
                             <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${item.location?.coordinates?.lat || 13.0042},${item.location?.coordinates?.lng || 76.1018}`}
+                              href={`https://www.google.com/maps/search/?api=1&query=${item.location?.coordinates?.lat || FIXED_CITY_LOCATION.lat},${item.location?.coordinates?.lng || FIXED_CITY_LOCATION.lng}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[11px] font-extrabold bg-blue-600/90 hover:bg-blue-600 text-white shadow-sm transition shrink-0"
@@ -2592,10 +2592,10 @@ export function DashboardPage() {
             <WeatherWidget
               lat={liveCoords.lat}
               lng={liveCoords.lng}
-              onLocationUpdate={(newLat, newLng) => {
-                setLiveCoords({ lat: newLat, lng: newLng });
+              onLocationUpdate={() => {
+                setLiveCoords(FIXED_CITY_LOCATION);
+                setLiveAddress(FIXED_CITY_LOCATION.address);
                 setHasLiveLocation(true);
-                setLiveAddress(formatLocationFromCoordinates(newLat, newLng).fullAddress);
                 setLocationError('');
               }}
             />

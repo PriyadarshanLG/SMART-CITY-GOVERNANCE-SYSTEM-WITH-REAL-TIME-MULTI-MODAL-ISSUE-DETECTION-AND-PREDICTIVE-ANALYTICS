@@ -15,7 +15,7 @@ import {
   Droplets,
 } from 'lucide-react';
 import { HelpDeskModal } from './HelpDeskModal';
-import { formatLocationFromCoordinates, getCurrentPositionAsync } from '../../lib/geoHelper';
+import { FIXED_CITY_LOCATION, formatLocationFromCoordinates, getCurrentPositionAsync } from '../../lib/geoHelper';
 
 interface WeatherData {
   temp: number;
@@ -34,7 +34,7 @@ interface WeatherWidgetProps {
   onLocationUpdate?: (lat: number, lng: number) => void;
 }
 
-export function WeatherWidget({ lat = 13.0042, lng = 76.1018, onLocationUpdate }: WeatherWidgetProps) {
+export function WeatherWidget({ lat = FIXED_CITY_LOCATION.lat, lng = FIXED_CITY_LOCATION.lng, onLocationUpdate }: WeatherWidgetProps) {
   const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number }>({ lat, lng });
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
